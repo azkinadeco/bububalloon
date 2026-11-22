@@ -61,18 +61,29 @@ export function ModelShowcaseSection() {
           <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 sm:mx-0 sm:px-0">
             {CATEGORIES.map((cat) => {
               const active = cat === activeCategory
+              const count =
+                cat === 'Semua'
+                  ? config.models.length
+                  : config.models.filter((m) => m.category === cat).length
               return (
                 <button
                   key={cat}
                   type="button"
                   onClick={() => setActiveCategory(cat)}
-                  className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer shrink-0 ${
+                  className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer shrink-0 inline-flex items-center gap-1.5 ${
                     active
                       ? 'bg-[#162A4C] text-white shadow-md shadow-[#162A4C]/15'
                       : 'bg-white/90 text-[#162A4C]/75 hover:bg-white border border-[#EFAAB6]/40'
                   }`}
                 >
-                  {cat}
+                  <span>{cat}</span>
+                  <span
+                    className={`text-[10px] px-1.5 py-0.5 rounded-full font-extrabold ${
+                      active ? 'bg-white/20 text-white' : 'bg-[#FFF5F7] text-[#D98395]'
+                    }`}
+                  >
+                    {count}
+                  </span>
                 </button>
               )
             })}

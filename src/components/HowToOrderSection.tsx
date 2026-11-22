@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Send, ChevronDown, Gift, Repeat, Calendar, MapPin, Copy, Check } from 'lucide-react'
 import { useSiteConfig } from '../context/SiteConfigContext'
@@ -40,6 +40,12 @@ export function HowToOrderSection() {
   const [selectedAddons, setSelectedAddons] = useState<string[]>([])
   const [notes, setNotes] = useState('')
   const [copied, setCopied] = useState(false)
+
+  useEffect(() => {
+    if (config.models.length > 0 && !config.models.some((m) => m.name === selectedModel) && selectedModel !== 'Custom') {
+      setSelectedModel(config.models[0].name)
+    }
+  }, [config.models, selectedModel])
 
   const activeStep = config.orderSteps[activeStepIdx] ?? config.orderSteps[0]
 

@@ -29,6 +29,9 @@ export type StickerType =
   | 'floral-bouquet'
   | 'jumbo-balloon'
   | 'number-balloon'
+  | 'fabric-drape'
+  | 'welcome-sign'
+  | 'standing-flower'
   | 'custom-png'
 
 export interface TextFontOption {
@@ -125,6 +128,7 @@ export const STICKER_DEFINITIONS: StickerDefinition[] = [
   { type: 'square-backdrop-2x2', label: 'Kotak 2×2m', category: 'Backdrop', defaultColor: '#FFFDFC', defaultWidth: 32, supportsBanner: true },
   { type: 'square-backdrop-2x3', label: 'Kotak 2×3m', category: 'Backdrop', defaultColor: '#FFFDFC', defaultWidth: 46, supportsBanner: true },
   { type: 'sequin-wall-2x2', label: 'Shimmer 2×2m', category: 'Backdrop', defaultColor: '#DFBE8A', defaultWidth: 32 },
+  { type: 'fabric-drape', label: 'Tirai Kain 2×3m', category: 'Backdrop', defaultColor: '#FFF8F9', defaultSecondary: '#EFAAB6', defaultWidth: 46 },
 
   // Balon (default 1 warna seragam, bebas diubah warna)
   { type: 'garland-arch', label: 'Garland Lengkung', category: 'Balon', defaultColor: '#F2B3BD', defaultSecondary: '#F2B3BD', defaultWidth: 42 },
@@ -147,6 +151,8 @@ export const STICKER_DEFINITIONS: StickerDefinition[] = [
   { type: 'teddy-bear', label: 'Boneka Teddy', category: 'Properti', defaultColor: '#D8AD86', defaultWidth: 10.5 },
   { type: 'ribbon-cake', label: 'Kue Pita', category: 'Properti', defaultColor: '#FDEBED', defaultWidth: 8.5 },
   { type: 'floral-bouquet', label: 'Buket Bunga', category: 'Properti', defaultColor: '#EFAAB6', defaultWidth: 10.5 },
+  { type: 'welcome-sign', label: 'Welcome Sign', category: 'Properti', defaultColor: '#FFFDFC', defaultSecondary: '#DFBE8A', defaultWidth: 13.5, defaultText: 'Welcome' },
+  { type: 'standing-flower', label: 'Standing Flower', category: 'Properti', defaultColor: '#EFAAB6', defaultSecondary: '#DFBE8A', defaultWidth: 12 },
 ]
 
 export interface StudioPreset {
@@ -1151,6 +1157,95 @@ export function StickerSVG({ element }: { element: CanvasElement }): React.React
           <circle cx="60" cy="41" r="9" fill={light} opacity="0.75" />
           <circle cx="44" cy="58" r="7" fill="#FFFDFC" opacity="0.45" />
           <circle cx="60" cy="90" r="5" fill="#EFAAB6" />
+        </svg>
+      )
+    }
+
+    case 'fabric-drape': {
+      // Soft pleated sheer/satin 2×3m drapery curtain backdrop with studio folds & warm fairy shimmer
+      const foldDark = shadeHex(color, -12)
+      const foldLight = shadeHex(color, 10)
+      const accent = secondaryColor || '#EFAAB6'
+      return (
+        <svg viewBox="0 0 300 200" className="w-full h-full drop-shadow-md">
+          <rect x="6" y="8" width="288" height="186" rx="4" fill={color} stroke="#162A4C" strokeOpacity="0.1" strokeWidth="1.5" />
+          {[22, 46, 70, 94, 118, 142, 166, 190, 214, 238, 262, 282].map((x, idx) => (
+            <rect
+              key={x}
+              x={x - 10}
+              y="10"
+              width="12"
+              height="182"
+              fill={idx % 2 === 0 ? foldDark : foldLight}
+              opacity={idx % 2 === 0 ? 0.35 : 0.45}
+            />
+          ))}
+          {/* Top curtain crossbar & tieback swag */}
+          <rect x="4" y="6" width="292" height="6" rx="3" fill={accent} opacity="0.85" />
+          <path d="M8 12 Q80 42 150 18 Q220 42 292 12" fill="none" stroke={accent} strokeWidth="3.5" opacity="0.55" />
+          <path d="M6 194 H294" stroke={foldDark} strokeWidth="2" opacity="0.4" />
+        </svg>
+      )
+    }
+
+    case 'welcome-sign': {
+      // Frosted acrylic arch Welcome Sign on luxury gold easel stand
+      const gold = secondaryColor || '#DFBE8A'
+      const label = (text || 'Welcome').slice(0, 24)
+      return (
+        <svg viewBox="0 0 140 200" className="w-full h-full drop-shadow-md">
+          {/* Gold easel legs */}
+          <line x1="70" y1="16" x2="26" y2="194" stroke={gold} strokeWidth="5.5" strokeLinecap="round" />
+          <line x1="70" y1="16" x2="114" y2="194" stroke={gold} strokeWidth="5.5" strokeLinecap="round" />
+          <line x1="22" y1="146" x2="118" y2="146" stroke={gold} strokeWidth="5" strokeLinecap="round" />
+          {/* Frosted arch acrylic sign board */}
+          <path
+            d="M28 144 V66 A42 42 0 0 1 112 66 V144 Z"
+            fill={color}
+            fillOpacity="0.92"
+            stroke={gold}
+            strokeWidth="2.5"
+          />
+          <path d="M36 52 Q55 34 86 38" fill="none" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" opacity="0.65" />
+          <text
+            x="70"
+            y="95"
+            textAnchor="middle"
+            fill="#162A4C"
+            fontSize="16"
+            fontFamily="Cormorant Garamond, Georgia, serif"
+            fontStyle="italic"
+            fontWeight="700"
+          >
+            {label}
+          </text>
+          <line x1="48" y1="108" x2="92" y2="108" stroke={gold} strokeWidth="1.5" />
+        </svg>
+      )
+    }
+
+    case 'standing-flower': {
+      // Tall luxury gold column stand topped with lush pastel floral arrangement
+      const gold = secondaryColor || '#DFBE8A'
+      const light = shadeHex(color, 22)
+      const dark = shadeHex(color, -18)
+      return (
+        <svg viewBox="0 0 120 200" className="w-full h-full drop-shadow-md">
+          {/* Tall minimalist gold geometric stand */}
+          <rect x="40" y="76" width="40" height="114" fill="none" stroke={gold} strokeWidth="4" />
+          <line x1="34" y1="190" x2="86" y2="190" stroke={gold} strokeWidth="5" strokeLinecap="round" />
+          <line x1="36" y1="76" x2="84" y2="76" stroke={gold} strokeWidth="4.5" strokeLinecap="round" />
+          {/* Lush greenery leaves */}
+          <ellipse cx="26" cy="58" rx="18" ry="8" fill="#8FB89B" transform="rotate(-25 26 58)" />
+          <ellipse cx="94" cy="58" rx="18" ry="8" fill="#8FB89B" transform="rotate(25 94 58)" />
+          <ellipse cx="38" cy="34" rx="14" ry="7" fill="#A9C9B3" transform="rotate(-48 38 34)" />
+          <ellipse cx="82" cy="34" rx="14" ry="7" fill="#A9C9B3" transform="rotate(48 82 34)" />
+          {/* Layered flowers */}
+          <circle cx="42" cy="56" r="16" fill={color} stroke={dark} strokeWidth="1.2" />
+          <circle cx="78" cy="56" r="16" fill={light} stroke={color} strokeWidth="1.5" />
+          <circle cx="60" cy="40" r="19" fill={color} stroke={dark} strokeWidth="1.2" />
+          <circle cx="60" cy="40" r="9" fill={light} opacity="0.75" />
+          <circle cx="60" cy="64" r="13" fill="#FFFDFC" stroke={color} strokeWidth="1.5" />
         </svg>
       )
     }

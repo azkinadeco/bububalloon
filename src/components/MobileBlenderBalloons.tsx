@@ -183,6 +183,15 @@ interface MobileBlenderBalloonsProps {
 export function MobileBlenderBalloons({ mood, onPopBurst }: MobileBlenderBalloonsProps) {
   const sprites = MOOD_BLENDER_SPRITES[mood.id] ?? MOOD_BLENDER_SPRITES.bubu
 
+  // Preload all Blender 3D balloon PNGs silently so switching color moods is instant with 0 flicker
+  useEffect(() => {
+    const allUrls = Array.from(new Set(Object.values(MOOD_BLENDER_SPRITES).flat()))
+    allUrls.forEach((url) => {
+      const img = new Image()
+      img.src = url
+    })
+  }, [])
+
   return (
     <div className="relative w-full h-full overflow-hidden">
       {MOBILE_SLOTS.map((slot, i) => (

@@ -898,7 +898,10 @@ export default function FullscreenStudioPage({
     type === 'garland-arch' ||
     type === 'balloon-cluster' ||
     type === 'double-arch' ||
-    type === 'gold-cross-table'
+    type === 'gold-cross-table' ||
+    type === 'fabric-drape' ||
+    type === 'welcome-sign' ||
+    type === 'standing-flower'
 
   const handleApplyColor = (hex: string) => {
     if (!selectedEl) return
@@ -929,7 +932,8 @@ export default function FullscreenStudioPage({
         el.type === 'square-backdrop-2x2' ||
         el.type === 'square-backdrop-2x3' ||
         el.type === 'double-arch' ||
-        el.type === 'scallop-arch'
+        el.type === 'scallop-arch' ||
+        el.type === 'fabric-drape'
       ) {
         return {
           ...el,
@@ -940,12 +944,13 @@ export default function FullscreenStudioPage({
       if (
         el.type === 'garland-arch' ||
         el.type === 'balloon-cluster' ||
-        el.type === 'jumbo-balloon'
+        el.type === 'jumbo-balloon' ||
+        el.type === 'standing-flower'
       ) {
         return {
           ...el,
           color: theme.balloonPrimary,
-          secondaryColor: theme.balloonSecondary,
+          secondaryColor: el.type === 'standing-flower' ? theme.accent : theme.balloonSecondary,
         }
       }
       if (el.type === 'number-balloon' || el.type === 'sequin-wall-2x2') {
@@ -1600,6 +1605,18 @@ export default function FullscreenStudioPage({
                       setSelectedId(el.id)
                       setLayersPopoverOpen(false)
                     }}
+                    onDoubleClick={(e) => {
+                      e.stopPropagation()
+                      if (
+                        el.type === 'custom-text' ||
+                        el.type === 'marquee-number' ||
+                        el.type === 'neon-sign' ||
+                        el.type === 'welcome-sign'
+                      ) {
+                        setSelectedId(el.id)
+                        setTextModalOpen(true)
+                      }
+                    }}
                     style={{
                       left: `${el.x}%`,
                       top: `${el.y}%`,
@@ -1728,7 +1745,8 @@ export default function FullscreenStudioPage({
                     {/* Rock-solid Text Editor Trigger (Top-pinned modal above iOS keyboard so it NEVER disappears!) */}
                     {(selectedEl.type === 'custom-text' ||
                       selectedEl.type === 'marquee-number' ||
-                      selectedEl.type === 'neon-sign') && (
+                      selectedEl.type === 'neon-sign' ||
+                      selectedEl.type === 'welcome-sign') && (
                       <div className="flex items-center gap-1.5">
                         <button
                           type="button"
@@ -1741,6 +1759,18 @@ export default function FullscreenStudioPage({
                           ✏️ Edit Teks: &ldquo;{(selectedEl.text || '').slice(0, 14)}&rdquo;
                         </button>
                       </div>
+                    )}
+
+                    {/* Quick Reset Rotation Pill (appears whenever element is tilted!) */}
+                    {selectedEl.rotation !== 0 && (
+                      <button
+                        type="button"
+                        onClick={() => updateSelected({ rotation: 0 })}
+                        className="px-2.5 py-1 rounded-full bg-[#FFF5F7] hover:bg-[#FDEBED] text-[10px] font-extrabold text-[#162A4C] border border-[#F2D5DC] cursor-pointer"
+                        title="Luruskan kembali ke 0°"
+                      >
+                        {selectedEl.rotation}° ↺ 0°
+                      </button>
                     )}
 
                     {/* Font Picker for Backdrop Text */}
@@ -1947,7 +1977,8 @@ export default function FullscreenStudioPage({
         selectedEl &&
         (selectedEl.type === 'custom-text' ||
           selectedEl.type === 'marquee-number' ||
-          selectedEl.type === 'neon-sign') && (
+          selectedEl.type === 'neon-sign' ||
+          selectedEl.type === 'welcome-sign') && (
           <div
             onClick={() => {
               commitElements(elements)
