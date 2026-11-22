@@ -899,18 +899,25 @@ export function StickerSVG({ element }: { element: CanvasElement }): React.React
 }
 
 /**
- * Compact 2D Studio Preview Renderer — used in Model Catalog & Portfolio cards
- * so the catalog matches the exact clean 2D Studio look!
+ * Compact 2D Studio Preview Renderer — supports both built-in presets
+ * AND custom user-created Studio 2D packages!
  */
 export function StudioPresetPreview({
   presetId,
+  customElements,
+  customBgId,
   className = '',
 }: {
   presetId: string
+  customElements?: CanvasElement[]
+  customBgId?: string
   className?: string
 }) {
   const preset = STUDIO_PRESETS.find((p) => p.id === presetId) ?? STUDIO_PRESETS[0]
-  const bg = ROOM_BACKGROUNDS.find((b) => b.id === preset.backgroundId) ?? ROOM_BACKGROUNDS[0]
+  const activeElements = customElements && customElements.length > 0 ? customElements : preset.elements
+  const bg =
+    ROOM_BACKGROUNDS.find((b) => b.id === (customBgId || preset.backgroundId)) ??
+    ROOM_BACKGROUNDS[0]
 
   return (
     <div
@@ -920,7 +927,7 @@ export function StudioPresetPreview({
       }}
     >
       <RoomBackgroundOverlay bg={bg} />
-      {preset.elements.map((el) => (
+      {activeElements.map((el) => (
         <div
           key={el.id}
           style={{

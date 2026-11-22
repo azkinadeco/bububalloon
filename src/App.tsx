@@ -19,6 +19,8 @@ function AppContent() {
   const params = new URLSearchParams(window.location.search)
   const isStudioMode = params.get('studio') === '1'
   const presetParam = params.get('preset')
+  const modelIdParam = params.get('modelId')
+  const isCreatePackageMode = params.get('mode') === 'create-package'
 
   if (isStudioMode) {
     return (
@@ -29,7 +31,11 @@ function AppContent() {
           </div>
         }
       >
-        <FullscreenStudioPage initialPresetId={presetParam} />
+        <FullscreenStudioPage
+          initialPresetId={presetParam}
+          initialModelId={modelIdParam}
+          createPackageMode={isCreatePackageMode}
+        />
       </Suspense>
     )
   }

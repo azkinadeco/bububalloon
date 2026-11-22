@@ -17,7 +17,14 @@ function ModelVisual({ model, className = '' }: { model: DesignModel; className?
       />
     )
   }
-  return <StudioPresetPreview presetId={model.studioPresetId} className={className} />
+  return (
+    <StudioPresetPreview
+      presetId={model.studioPresetId}
+      customElements={model.customStudioElements}
+      customBgId={model.customStudioBgId}
+      className={className}
+    />
+  )
 }
 
 export function ModelShowcaseSection() {
@@ -144,7 +151,7 @@ export function ModelShowcaseSection() {
 
                 <div className="mt-5 pt-4 border-t border-[#FDEBED] flex items-center gap-2">
                   <a
-                    href={`/?studio=1&preset=${encodeURIComponent(model.studioPresetId)}`}
+                    href={`/?studio=1&preset=${encodeURIComponent(model.studioPresetId)}&modelId=${encodeURIComponent(model.id)}`}
                     target="_blank"
                     rel="noreferrer"
                     className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-full bg-[#FDEBED] hover:bg-[#F7D3DA] text-[#162A4C] text-xs font-bold transition-colors"

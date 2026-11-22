@@ -275,34 +275,45 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
                 </div>
               ))}
 
-              <button
-                type="button"
-                onClick={() => {
-                  updateConfig((prev) => ({
-                    ...prev,
-                    models: [
-                      ...prev.models,
-                      {
-                        id: `custom-${Date.now()}`,
-                        name: 'Model Baru Bubu',
-                        category: 'Ulang Tahun',
-                        tag: 'Baru',
-                        size: '2,5m × 2,2m',
-                        description: 'Dekorasi balon modern custom warna sesuai tema.',
-                        image: '',
-                        colors: ['#FDEBED', '#EFAAB6', '#162A4C'],
-                        includes: ['Arch Backdrop', 'Organic Garland', 'Custom Nama'],
-                        studioPresetId: 'bubu-signature',
-                      },
-                    ],
-                  }))
-                  flashSaved()
-                }}
-                className="w-full py-2.5 rounded-2xl border-2 border-dashed border-[#EFAAB6] text-xs font-extrabold text-[#162A4C] flex items-center justify-center gap-1.5 hover:bg-[#FFF5F7] cursor-pointer"
-              >
-                <Plus className="w-4 h-4 text-[#D98395]" />
-                Tambah Model Paket
-              </button>
+              <div className="grid grid-cols-1 gap-2">
+                <a
+                  href="/?studio=1&mode=create-package"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-full py-2.5 px-3 rounded-2xl bg-[#162A4C] hover:bg-[#243E6B] text-white text-xs font-extrabold flex items-center justify-center gap-1.5 shadow-sm transition-colors"
+                >
+                  <Plus className="w-4 h-4 text-[#F2B3BD]" />
+                  Buat Model Paket di Studio 2D ↗
+                </a>
+                <button
+                  type="button"
+                  onClick={() => {
+                    updateConfig((prev) => ({
+                      ...prev,
+                      models: [
+                        ...prev.models,
+                        {
+                          id: `custom-${Date.now()}`,
+                          name: 'Model Baru Bubu',
+                          category: 'Ulang Tahun',
+                          tag: 'Baru',
+                          size: '2,5m × 2,2m',
+                          description: 'Dekorasi balon modern custom warna sesuai tema.',
+                          image: '',
+                          colors: ['#FDEBED', '#EFAAB6', '#162A4C'],
+                          includes: ['Arch Backdrop', 'Organic Garland', 'Custom Nama'],
+                          studioPresetId: 'bubu-signature',
+                        },
+                      ],
+                    }))
+                    flashSaved()
+                  }}
+                  className="w-full py-2.5 rounded-2xl border-2 border-dashed border-[#EFAAB6] text-xs font-extrabold text-[#162A4C] flex items-center justify-center gap-1.5 hover:bg-[#FFF5F7] cursor-pointer"
+                >
+                  <Plus className="w-4 h-4 text-[#D98395]" />
+                  Tambah Paket Cepat (Teks)
+                </button>
+              </div>
 
               {/* Add-ons Editor */}
               <div className="pt-3 border-t border-[#FDEBED]">

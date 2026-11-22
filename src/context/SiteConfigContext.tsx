@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
+import type { CanvasElement } from '../components/Studio2D/stickerLibrary'
 
 export type DesignCategory = 'Semua' | 'Ulang Tahun' | 'Sweet 17' | 'Kids & Baby' | 'Intimate & Bridal'
 
@@ -9,10 +10,12 @@ export interface DesignModel {
   tag: string
   size: string
   description: string
-  image: string // Empty string = render clean 2D Studio preview; custom dataURL/URL = show uploaded photo
+  image: string // Empty string = render 2D Studio preview; custom dataURL/URL = show uploaded photo
   colors: string[]
   includes: string[]
   studioPresetId: string
+  customStudioElements?: CanvasElement[]
+  customStudioBgId?: string
 }
 
 export interface OrderStep {
@@ -26,7 +29,7 @@ export interface PortfolioItem {
   title: string
   eventType: string
   location: string
-  image: string // Empty string = render clean 2D Studio preview
+  image: string
   presetId: string
   palette: string[]
 }
@@ -185,7 +188,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   ],
 }
 
-const STORAGE_KEY = 'bubu-balloon-site-config-v3'
+export const SITE_CONFIG_STORAGE_KEY = 'bubu-balloon-site-config-v3'
 
 interface SiteConfigContextValue {
   config: SiteConfig
@@ -196,29 +199,42 @@ interface SiteConfigContextValue {
 
 const SiteConfigContext = createContext<SiteConfigContextValue | null>(null)
 
-export function SiteConfigProvider({ children }: { children: React.ReactNode }) {
-  const [config, setConfig] = useState<SiteConfig>(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY)
-      if (!raw) return DEFAULT_SITE_CONFIG
-      const parsed = JSON.parse(raw) as Partial<SiteConfig>
-      return {
-        ...DEFAULT_SITE_CONFIG,
-        ...parsed,
-        brand: { ...DEFAULT_SITE_CONFIG.brand, ...(parsed.brand ?? {}) },
-      }
-    } catch {
-      return DEFAULT_SITE_CONFIG
+function loadConfigFromStorage(): SiteConfig {
+  try {
+    const raw = localStorage.getItem(SITE_CONFIG_STORAGE_KEY)
+    if (!raw) return DEFAULT_SITE_CONFIG
+    const parsed = JSON.parse(raw) as Partial<SiteConfig>
+    return {
+      ...DEFAULT_SITE_CONFIG,
+      ...parsed,
+      brand: { ...DEFAULT_SITE_CONFIG.brand, ...(parsed.brand ?? {}) },
     }
-  })
+  } catch {
+    return DEFAULT_SITE_CONFIG
+  }
+}
+
+export function SiteConfigProvider({ children }: { children: React.ReactNode }) {
+  const [config, setConfig] = useState<SiteConfig>(loadConfigFromStorage)
 
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(config))
+      localStorage.setItem(SITE_CONFIG_STORAGE_KEY, JSON.stringify(config))
     } catch {
       // Ignore quota errors
     }
   }, [config])
+
+  // Real-time sync across tabs (e.g. saving a new package in Studio 2D tab updates Homepage tab instantly!)
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === SITE_CONFIG_STORAGE_KEY) {
+        setConfig(loadConfigFromStorage())
+      }
+    }
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  }, [])
 
   const updateConfig = (updater: (prev: SiteConfig) => SiteConfig) => {
     setConfig((prev) => updater(prev))
@@ -227,7 +243,7 @@ export function SiteConfigProvider({ children }: { children: React.ReactNode }) 
   const resetConfig = () => {
     setConfig(DEFAULT_SITE_CONFIG)
     try {
-      localStorage.removeItem(STORAGE_KEY)
+      localStorage.removeItem(SITE_CONFIG_STORAGE_KEY)
     } catch {
       // ignore
     }

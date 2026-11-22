@@ -33,14 +33,6 @@ export const BALLOON_MOODS: BalloonMood[] = [
   },
 ]
 
-export interface SpawnedBalloon {
-  id: string
-  position: [number, number, number]
-  scale: number
-  colorIdx: number
-  finish: 'satin' | 'chrome' | 'pearl'
-}
-
 function createPlushBalloonGeo(isMobile: boolean): THREE.LatheGeometry {
   const pts: THREE.Vector2[] = []
   const steps = isMobile ? 18 : 24
@@ -62,7 +54,8 @@ interface FloatingBalloonProps {
   finish: 'satin' | 'chrome' | 'pearl'
   speed: number
   rotation?: [number, number, number]
-  onPop: (color: string) => void
+  onTap: (color: string, tapNum: number) => void
+  onExplode: (color: string) => void
 }
 
 function FloatingBalloon({
@@ -73,21 +66,46 @@ function FloatingBalloon({
   finish,
   speed,
   rotation = [0, 0, 0],
-  onPop,
+  onTap,
+  onExplode,
 }: FloatingBalloonProps) {
   const ref = useRef<THREE.Group>(null)
   const [hovered, setHovered] = useState(false)
-  const popAnim = useRef(0)
+  const [popped, setPopped] = useState(false)
+  const tapCountRef = useRef(0)
+  const bounceRef = useRef(0)
+  const respawnTimerRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (respawnTimerRef.current) window.clearTimeout(respawnTimerRef.current)
+    }
+  }, [])
 
   useFrame((_, delta) => {
     if (!ref.current) return
     const dt = Math.min(delta, 0.05)
-    if (popAnim.current > 0.001) {
-      popAnim.current = THREE.MathUtils.lerp(popAnim.current, 0, dt * 5.5)
-      ref.current.rotation.y += dt * 4.5 * popAnim.current
+
+    if (popped) {
+      // Shrink cleanly to 0 when exploded
+      ref.current.scale.setScalar(THREE.MathUtils.lerp(ref.current.scale.x, 0.0001, dt * 16))
+      return
     }
-    const target = scale * (hovered ? 1.08 : 1) * (1 + Math.sin(popAnim.current * Math.PI) * 0.24)
-    ref.current.scale.setScalar(THREE.MathUtils.lerp(ref.current.scale.x, target, dt * 8))
+
+    if (bounceRef.current > 0.001) {
+      bounceRef.current = THREE.MathUtils.lerp(bounceRef.current, 0, dt * 6)
+      ref.current.rotation.y += dt * 3.8 * bounceRef.current
+    }
+
+    // Swells slightly more with each tap up to 9 before exploding on tap 10!
+    const tensionGrow = 1 + tapCountRef.current * 0.025
+    const target =
+      scale *
+      tensionGrow *
+      (hovered ? 1.07 : 1) *
+      (1 + Math.sin(bounceRef.current * Math.PI) * 0.18)
+
+    ref.current.scale.setScalar(THREE.MathUtils.lerp(ref.current.scale.x, target, dt * 7))
   })
 
   const matProps = useMemo(() => {
@@ -100,14 +118,39 @@ function FloatingBalloon({
     return { color, metalness: 0.02, roughness: 0.2, clearcoat: 0.9, clearcoatRoughness: 0.11 }
   }, [color, finish])
 
+  const handleClick = (e: { stopPropagation: () => void }) => {
+    e.stopPropagation()
+    if (popped) return
+
+    const nextTap = tapCountRef.current + 1
+    tapCountRef.current = nextTap
+
+    if (nextTap >= 10) {
+      // 10th tap -> EXPLODE & respawn after 5 seconds!
+      setPopped(true)
+      tapCountRef.current = 0
+      onExplode(color)
+      if (respawnTimerRef.current) window.clearTimeout(respawnTimerRef.current)
+      respawnTimerRef.current = window.setTimeout(() => {
+        setPopped(false)
+        bounceRef.current = 1
+      }, 5000)
+    } else {
+      bounceRef.current = 1
+      onTap(color, nextTap)
+    }
+  }
+
   return (
-    <Float speed={speed} rotationIntensity={0.14} floatIntensity={0.3}>
+    <Float speed={speed} rotationIntensity={0.13} floatIntensity={0.28}>
       <group
         ref={ref}
         position={position}
         rotation={rotation}
         scale={scale}
+        visible={!popped || (ref.current ? ref.current.scale.x > 0.01 : true)}
         onPointerOver={(e) => {
+          if (popped) return
           e.stopPropagation()
           setHovered(true)
           document.body.style.cursor = 'pointer'
@@ -116,11 +159,7 @@ function FloatingBalloon({
           setHovered(false)
           document.body.style.cursor = 'auto'
         }}
-        onClick={(e) => {
-          e.stopPropagation()
-          popAnim.current = 1
-          onPop(color)
-        }}
+        onClick={handleClick}
       >
         <mesh geometry={geometry}>
           <meshPhysicalMaterial {...matProps} />
@@ -134,16 +173,16 @@ function FloatingBalloon({
   )
 }
 
-function InteractiveBalloonStage({
+function SeamlessScene({
   mood,
   isMobile,
-  spawned,
-  onPop,
+  onTap,
+  onExplode,
 }: {
   mood: BalloonMood
   isMobile: boolean
-  spawned: SpawnedBalloon[]
-  onPop: (color: string) => void
+  onTap: (color: string, tapNum: number) => void
+  onExplode: (color: string) => void
 }) {
   const rootRef = useRef<THREE.Group>(null)
   const balloonGeo = useMemo(() => createPlushBalloonGeo(isMobile), [isMobile])
@@ -152,86 +191,182 @@ function InteractiveBalloonStage({
   useFrame((state, delta) => {
     if (!rootRef.current) return
     const dt = Math.min(delta, 0.05)
-    const targetY = isMobile
-      ? Math.sin(state.clock.elapsedTime * 0.55) * 0.12 + state.pointer.x * 0.18
-      : state.pointer.x * 0.18
-    const targetX = isMobile ? -state.pointer.y * 0.08 : -state.pointer.y * 0.1
-    rootRef.current.rotation.y = THREE.MathUtils.lerp(rootRef.current.rotation.y, targetY, dt * 2.6)
-    rootRef.current.rotation.x = THREE.MathUtils.lerp(rootRef.current.rotation.x, targetX, dt * 2.6)
+    if (isMobile) {
+      rootRef.current.rotation.y = THREE.MathUtils.lerp(
+        rootRef.current.rotation.y,
+        Math.sin(state.clock.elapsedTime * 0.45) * 0.09 + state.pointer.x * 0.12,
+        dt * 2.2
+      )
+      return
+    }
+    rootRef.current.rotation.y = THREE.MathUtils.lerp(
+      rootRef.current.rotation.y,
+      state.pointer.x * 0.12,
+      dt * 2.2
+    )
+    rootRef.current.rotation.x = THREE.MathUtils.lerp(
+      rootRef.current.rotation.x,
+      -state.pointer.y * 0.08,
+      dt * 2.2
+    )
   })
 
+  if (isMobile) {
+    // Seamless full-bleed iPhone composition — balloons float naturally around top & bottom edges,
+    // leaving the center clean for crisp typography, and EVERY balloon is tappable!
+    return (
+      <group ref={rootRef}>
+        <FloatingBalloon
+          geometry={balloonGeo}
+          position={[1.55, 2.25, 0.2]}
+          scale={0.84}
+          color={c1}
+          finish="satin"
+          speed={1.3}
+          rotation={[0.04, 0, -0.08]}
+          onTap={onTap}
+          onExplode={onExplode}
+        />
+        <FloatingBalloon
+          geometry={balloonGeo}
+          position={[-1.55, 2.35, -0.35]}
+          scale={0.76}
+          color={c2}
+          finish="satin"
+          speed={1.5}
+          rotation={[-0.03, 0.15, 0.1]}
+          onTap={onTap}
+          onExplode={onExplode}
+        />
+        <FloatingBalloon
+          geometry={balloonGeo}
+          position={[0.05, 3.05, -1.1]}
+          scale={0.64}
+          color={c3}
+          finish="pearl"
+          speed={1.2}
+          onTap={onTap}
+          onExplode={onExplode}
+        />
+        <FloatingBalloon
+          geometry={balloonGeo}
+          position={[1.65, -2.05, 0.1]}
+          scale={0.68}
+          color={c5}
+          finish="chrome"
+          speed={1.65}
+          rotation={[0, 0, 0.12]}
+          onTap={onTap}
+          onExplode={onExplode}
+        />
+        <FloatingBalloon
+          geometry={balloonGeo}
+          position={[-1.65, -2.15, -0.25]}
+          scale={0.64}
+          color={c4}
+          finish="satin"
+          speed={1.45}
+          rotation={[0.05, 0, -0.1]}
+          onTap={onTap}
+          onExplode={onExplode}
+        />
+        {/* Subtle floating gold halo behind upper balloons */}
+        <Float speed={1.0} rotationIntensity={0.06} floatIntensity={0.16}>
+          <mesh position={[0, 2.15, -2.0]} rotation={[0.06, -0.12, 0]}>
+            <torusGeometry args={[1.95, 0.022, 12, 60]} />
+            <meshPhysicalMaterial color="#E5C691" metalness={0.82} roughness={0.2} />
+          </mesh>
+        </Float>
+      </group>
+    )
+  }
+
+  // Seamless full-bleed Desktop composition (the exact natural Dribbble layout the user loved!)
   return (
     <group ref={rootRef}>
-      {/* Sculpted non-overlapping centerpiece balloons (every pair has clean clearance!) */}
       <FloatingBalloon
         geometry={balloonGeo}
-        position={[0.0, 0.35, 0.3]}
-        scale={isMobile ? 1.02 : 1.12}
+        position={[2.15, 0.35, 0.3]}
+        scale={1.08}
         color={c1}
         finish="satin"
-        speed={1.35}
-        rotation={[0.04, 0, -0.06]}
-        onPop={onPop}
+        speed={1.3}
+        rotation={[0.04, 0, -0.08]}
+        onTap={onTap}
+        onExplode={onExplode}
       />
       <FloatingBalloon
         geometry={balloonGeo}
-        position={[1.95, 1.15, -0.35]}
-        scale={isMobile ? 0.84 : 0.94}
+        position={[4.55, 1.35, -0.4]}
+        scale={0.95}
         color={c2}
         finish="satin"
-        speed={1.6}
+        speed={1.55}
         rotation={[-0.04, 0.18, 0.1]}
-        onPop={onPop}
+        onTap={onTap}
+        onExplode={onExplode}
       />
       <FloatingBalloon
         geometry={balloonGeo}
-        position={[-1.95, 1.05, -0.45]}
-        scale={isMobile ? 0.8 : 0.88}
+        position={[0.65, 2.05, -1.1]}
+        scale={0.78}
         color={c3}
         finish="pearl"
-        speed={1.25}
+        speed={1.2}
         rotation={[0.04, 0, -0.12]}
-        onPop={onPop}
+        onTap={onTap}
+        onExplode={onExplode}
       />
       <FloatingBalloon
         geometry={balloonGeo}
-        position={[1.85, -1.25, 0.35]}
-        scale={isMobile ? 0.66 : 0.72}
+        position={[4.65, -1.25, 0.45]}
+        scale={0.74}
         color={c5}
         finish="chrome"
-        speed={1.8}
+        speed={1.75}
         rotation={[0, 0, 0.12]}
-        onPop={onPop}
+        onTap={onTap}
+        onExplode={onExplode}
       />
       <FloatingBalloon
         geometry={balloonGeo}
-        position={[-1.75, -1.25, 0.45]}
-        scale={isMobile ? 0.62 : 0.68}
+        position={[1.95, -1.85, 0.75]}
+        scale={0.62}
         color={c4}
         finish="satin"
         speed={1.65}
         rotation={[0.05, 0, -0.1]}
-        onPop={onPop}
+        onTap={onTap}
+        onExplode={onExplode}
       />
 
-      {/* Extra user-spawned interactive balloons */}
-      {spawned.map((b) => (
-        <FloatingBalloon
-          key={b.id}
-          geometry={balloonGeo}
-          position={b.position}
-          scale={b.scale}
-          color={mood.swatches[b.colorIdx % mood.swatches.length]}
-          finish={b.finish}
-          speed={1.9}
-          onPop={onPop}
-        />
-      ))}
+      {/* Ambient distant left-side balloons */}
+      <FloatingBalloon
+        geometry={balloonGeo}
+        position={[-4.85, 1.75, -2.4]}
+        scale={0.78}
+        color={c1}
+        finish="pearl"
+        speed={1.15}
+        rotation={[0, 0, 0.14]}
+        onTap={onTap}
+        onExplode={onExplode}
+      />
+      <FloatingBalloon
+        geometry={balloonGeo}
+        position={[-4.2, -1.85, -2.0]}
+        scale={0.6}
+        color={c5}
+        finish="chrome"
+        speed={1.45}
+        rotation={[0, 0, -0.1]}
+        onTap={onTap}
+        onExplode={onExplode}
+      />
 
-      {/* Soft gold decorative ring cleanly behind */}
-      <Float speed={1.0} rotationIntensity={0.08} floatIntensity={0.18}>
-        <mesh position={[0, 0.1, -1.75]} rotation={[0.08, -0.15, 0]}>
-          <torusGeometry args={[2.35, 0.028, 12, 68]} />
+      <Float speed={1.0} rotationIntensity={0.08} floatIntensity={0.2}>
+        <mesh position={[3.0, 0.15, -2.1]} rotation={[0.08, -0.18, 0]}>
+          <torusGeometry args={[2.6, 0.024, 12, 72]} />
           <meshPhysicalMaterial color="#E5C691" metalness={0.82} roughness={0.2} />
         </mesh>
       </Float>
@@ -241,11 +376,10 @@ function InteractiveBalloonStage({
 
 interface Hero3DSceneProps {
   mood: BalloonMood
-  spawned: SpawnedBalloon[]
-  onBalloonPop?: () => void
+  onStatusChange?: (msg: string) => void
 }
 
-export default function Hero3DScene({ mood, spawned, onBalloonPop }: Hero3DSceneProps) {
+export default function Hero3DScene({ mood, onStatusChange }: Hero3DSceneProps) {
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== 'undefined' ? window.innerWidth < 768 : false
   )
@@ -257,29 +391,41 @@ export default function Hero3DScene({ mood, spawned, onBalloonPop }: Hero3DScene
     return () => mq.removeEventListener('change', onChange)
   }, [])
 
-  const handlePop = (color: string) => {
-    onBalloonPop?.()
+  const handleTap = (color: string, tapNum: number) => {
+    onStatusChange?.(`Pop ${tapNum}/10 ✨`)
     confetti({
-      particleCount: isMobile ? 16 : 24,
-      spread: 56,
-      origin: { y: isMobile ? 0.62 : 0.48, x: isMobile ? 0.5 : 0.68 },
-      colors: [color, '#FDEBED', '#162A4C', '#DFBE8A'],
-      scalar: 0.78,
-      ticks: 90,
+      particleCount: isMobile ? 10 : 14,
+      spread: 45,
+      origin: { y: 0.48, x: isMobile ? 0.5 : 0.68 },
+      colors: [color, '#FDEBED', '#DFBE8A'],
+      scalar: 0.7,
+      ticks: 70,
+    })
+  }
+
+  const handleExplode = (color: string) => {
+    onStatusChange?.('BOOM! 💥 Muncul lagi dalam 5 detik...')
+    confetti({
+      particleCount: isMobile ? 48 : 75,
+      spread: 95,
+      origin: { y: 0.48, x: isMobile ? 0.5 : 0.68 },
+      colors: [color, '#FDEBED', '#162A4C', '#DFBE8A', '#EFAAB6'],
+      scalar: 0.95,
+      ticks: 130,
     })
   }
 
   return (
     <Canvas
       dpr={isMobile ? [1, 1.25] : [1, 1.5]}
-      camera={{ position: [0, 0, isMobile ? 7.6 : 7.2], fov: 38 }}
+      camera={{ position: [0, 0, isMobile ? 9.4 : 8.6], fov: isMobile ? 42 : 36 }}
       gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
       style={{ width: '100%', height: '100%', touchAction: 'pan-y' }}
     >
       <ambientLight intensity={0.96} />
       <directionalLight position={[6, 8, 6]} intensity={1.25} color="#FFF9F7" />
       <directionalLight position={[-6, 2, 5]} intensity={0.72} color="#FDEBED" />
-      <pointLight position={[0, -4, 4]} intensity={0.45} color="#F3B6C1" />
+      <pointLight position={[2, -4, 4]} intensity={0.48} color="#F3B6C1" />
 
       <Environment resolution={isMobile ? 64 : 128}>
         <Lightformer form="ring" intensity={2.1} position={[0, 6, 4]} scale={10} color="#FFFFFF" />
@@ -287,11 +433,11 @@ export default function Hero3DScene({ mood, spawned, onBalloonPop }: Hero3DScene
         <Lightformer form="rect" intensity={1.5} position={[6, 3, 2]} scale={[6, 8, 1]} color="#FFF4E6" />
       </Environment>
 
-      <InteractiveBalloonStage
+      <SeamlessScene
         mood={mood}
         isMobile={isMobile}
-        spawned={spawned}
-        onPop={handlePop}
+        onTap={handleTap}
+        onExplode={handleExplode}
       />
     </Canvas>
   )

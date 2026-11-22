@@ -24,6 +24,8 @@ import {
   RotateCcw,
   Bookmark,
   FolderOpen,
+  PackagePlus,
+  Check,
 } from 'lucide-react'
 import {
   CanvasElement,
@@ -37,7 +39,7 @@ import {
   StickerSVG,
   StickerType,
 } from './stickerLibrary'
-import { useSiteConfig } from '../../context/SiteConfigContext'
+import { useSiteConfig, DesignModel } from '../../context/SiteConfigContext'
 
 type SidebarTab = 'elemen' | 'template' | 'latar'
 const ELEMENT_CATEGORIES: StickerCategory[] = ['Backdrop', 'Balon', 'Properti']
@@ -69,19 +71,35 @@ const DEFAULT_STUDIO_SETTINGS: StudioCustomSettings = {
 
 interface FullscreenStudioPageProps {
   initialPresetId?: string | null
+  initialModelId?: string | null
+  createPackageMode?: boolean
 }
 
-export default function FullscreenStudioPage({ initialPresetId }: FullscreenStudioPageProps) {
-  const { config, buildWhatsAppUrl } = useSiteConfig()
+export default function FullscreenStudioPage({
+  initialPresetId,
+  initialModelId,
+  createPackageMode = false,
+}: FullscreenStudioPageProps) {
+  const { config, updateConfig, buildWhatsAppUrl } = useSiteConfig()
 
+  const existingModel = initialModelId
+    ? config.models.find((m) => m.id === initialModelId)
+    : undefined
   const initialPreset =
     STUDIO_PRESETS.find((p) => p.id === initialPresetId) ?? STUDIO_PRESETS[0]
 
-  const [elements, setElements] = useState<CanvasElement[]>(initialPreset.elements)
-  const [history, setHistory] = useState<CanvasElement[][]>([initialPreset.elements])
+  const startElements = existingModel?.customStudioElements?.length
+    ? existingModel.customStudioElements
+    : createPackageMode
+      ? []
+      : initialPreset.elements
+  const startBgId = existingModel?.customStudioBgId || initialPreset.backgroundId
+
+  const [elements, setElements] = useState<CanvasElement[]>(startElements)
+  const [history, setHistory] = useState<CanvasElement[][]>([startElements])
   const [historyIndex, setHistoryIndex] = useState(0)
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [backgroundId, setBackgroundId] = useState<string>(initialPreset.backgroundId)
+  const [backgroundId, setBackgroundId] = useState<string>(startBgId)
   const [customBgUrl, setCustomBgUrl] = useState<string | null>(null)
   const [sidebarTab, setSidebarTab] = useState<SidebarTab>('elemen')
   const [activeCategory, setActiveCategory] = useState<StickerCategory>('Backdrop')
@@ -92,6 +110,66 @@ export default function FullscreenStudioPage({ initialPresetId }: FullscreenStud
   const [showLayers, setShowLayers] = useState(false)
   // iPhone / mobile Canva-style collapsible bottom sheet
   const [mobileSheet, setMobileSheet] = useState<'elemen' | 'template' | 'latar' | 'atur' | 'layer' | null>(null)
+  // Save current 2D canvas as a new Homepage Package modal
+  const [pkgModalOpen, setPkgModalOpen] = useState(false)
+  const [pkgName, setPkgName] = useState(existingModel?.name ?? '')
+  const [pkgCategory, setPkgCategory] = useState<DesignModel['category']>(
+    existingModel?.category ?? 'Ulang Tahun'
+  )
+  const [pkgSize, setPkgSize] = useState(existingModel?.size ?? '2,4m × 2,2m')
+  const [pkgTag, setPkgTag] = useState(existingModel?.tag ?? 'Baru')
+  const [pkgDesc, setPkgDesc] = useState(existingModel?.description ?? '')
+  const [pkgSpecsText, setPkgSpecsText] = useState('')
+  const [pkgSavedDone, setPkgSavedDone] = useState(false)
+
+  const openSavePackageModal = () => {
+    // Auto-suggest specs from placed stickers on canvas
+    const uniqueSpecs = Array.from(new Set(elements.map((el) => getElementDisplayName(el))))
+    if (!pkgSpecsText) {
+      setPkgSpecsText(uniqueSpecs.slice(0, 5).join(', '))
+    }
+    setPkgSavedDone(false)
+    setStudioSettingsOpen(false)
+    setPkgModalOpen(true)
+  }
+
+  const handleSaveAsHomepagePackage = () => {
+    const cleanName = pkgName.trim() || `Paket Custom ${config.models.length + 1}`
+    const specs = pkgSpecsText
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean)
+    const palette = Array.from(new Set(elements.map((e) => e.color).filter(Boolean))).slice(0, 4)
+
+    const newModel: DesignModel = {
+      id: existingModel ? existingModel.id : `pkg-${Date.now()}`,
+      name: cleanName,
+      category: pkgCategory,
+      tag: pkgTag.trim() || 'Baru',
+      size: pkgSize.trim() || '2,4m × 2,2m',
+      description:
+        pkgDesc.trim() || 'Desain dekorasi balon modern yang dibuat langsung di Studio 2D Bubu.',
+      image: '',
+      colors: palette.length > 0 ? palette : ['#FDEBED', '#EFAAB6', '#162A4C'],
+      includes: specs.length > 0 ? specs : ['Custom Backdrop', 'Organic Garland'],
+      studioPresetId: 'bubu-signature',
+      customStudioElements: elements,
+      customStudioBgId: backgroundId,
+    }
+
+    updateConfig((prev) => {
+      const exists = prev.models.some((m) => m.id === newModel.id)
+      return {
+        ...prev,
+        models: exists
+          ? prev.models.map((m) => (m.id === newModel.id ? newModel : m))
+          : [newModel, ...prev.models],
+      }
+    })
+
+    setPkgSavedDone(true)
+    showToast(`Paket "${cleanName}" tampil di Homepage! 🎉`)
+  }
 
   const [savedDrafts, setSavedDrafts] = useState<SavedDraft[]>(() => {
     try {
@@ -664,6 +742,16 @@ export default function FullscreenStudioPage({ initialPresetId }: FullscreenStud
         )}
 
         <div className="flex items-center gap-1.5 sm:gap-2">
+          {createPackageMode && (
+            <button
+              type="button"
+              onClick={openSavePackageModal}
+              className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-full bg-[#EFAAB6] hover:bg-[#D98395] text-[#162A4C] hover:text-white text-xs font-extrabold cursor-pointer transition-colors"
+            >
+              <PackagePlus className="w-3.5 h-3.5" />
+              <span>Jadikan Paket</span>
+            </button>
+          )}
           <button
             type="button"
             onClick={handleSaveDraft}
@@ -1656,6 +1744,17 @@ export default function FullscreenStudioPage({ initialPresetId }: FullscreenStud
               </button>
             </div>
 
+            <div className="px-4 py-3 border-b border-[#FDEBED] bg-[#FFF5F7]">
+              <button
+                type="button"
+                onClick={openSavePackageModal}
+                className="w-full py-2.5 px-4 rounded-2xl bg-[#162A4C] hover:bg-[#243E6B] text-white text-xs font-extrabold flex items-center justify-center gap-2 shadow-sm cursor-pointer transition-colors"
+              >
+                <PackagePlus className="w-4 h-4 text-[#F2B3BD]" />
+                + Jadikan Desain Ini Paket Homepage
+              </button>
+            </div>
+
             <div className="px-4 py-2 border-b border-[#FDEBED] grid grid-cols-3 gap-1">
               {[
                 { id: 'elemen' as const, label: 'Elemen' },
@@ -1781,6 +1880,159 @@ export default function FullscreenStudioPage({ initialPresetId }: FullscreenStud
                 Selesai
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {/* Modal: Simpan Desain 2D sebagai Model Paket Homepage */}
+      {pkgModalOpen && (
+        <div
+          onClick={() => setPkgModalOpen(false)}
+          className="fixed inset-0 z-[60] bg-[#162A4C]/50 backdrop-blur-sm flex items-center justify-center p-4"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-md rounded-[2rem] bg-white p-6 shadow-2xl border border-white space-y-4 max-h-[90vh] overflow-y-auto"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-extrabold text-[#162A4C]">
+                  Simpan ke Paket Homepage
+                </h3>
+                <p className="text-[11px] text-[#162A4C]/55">
+                  Desain kanvas 2D ini akan langsung muncul di Katalog Paket beranda.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPkgModalOpen(false)}
+                className="w-8 h-8 rounded-full bg-[#FDEBED] text-[#162A4C] flex items-center justify-center cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {pkgSavedDone ? (
+              <div className="py-4 text-center space-y-4">
+                <div className="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto">
+                  <Check className="w-6 h-6" />
+                </div>
+                <div>
+                  <p className="text-sm font-extrabold text-[#162A4C]">
+                    Berhasil ditambahkan ke Homepage Paket! 🎉
+                  </p>
+                  <p className="text-xs text-[#162A4C]/60 mt-1">
+                    Buka beranda untuk melihat kartu paket baru kamu langsung tampil.
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPkgModalOpen(false)}
+                    className="flex-1 py-2.5 rounded-full bg-[#FFF5F7] text-[#162A4C] text-xs font-bold cursor-pointer"
+                  >
+                    Lanjut Edit
+                  </button>
+                  <a
+                    href="/#model-desain"
+                    className="flex-1 py-2.5 rounded-full bg-[#162A4C] text-white text-xs font-bold text-center"
+                  >
+                    Lihat di Beranda ↗
+                  </a>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-[#162A4C] mb-1">
+                    Nama Model Paket
+                  </label>
+                  <input
+                    type="text"
+                    value={pkgName}
+                    onChange={(e) => setPkgName(e.target.value)}
+                    placeholder="Contoh: Princess Shimmer Gold"
+                    className="w-full rounded-xl border border-[#EFAAB6]/60 bg-[#FFF9FA] px-3.5 py-2 text-xs font-bold text-[#162A4C]"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2.5">
+                  <div>
+                    <label className="block text-[11px] font-bold text-[#162A4C] mb-1">
+                      Kategori
+                    </label>
+                    <select
+                      value={pkgCategory}
+                      onChange={(e) => setPkgCategory(e.target.value as DesignModel['category'])}
+                      className="w-full rounded-xl border border-[#EFAAB6]/60 bg-[#FFF9FA] px-3 py-2 text-xs text-[#162A4C]"
+                    >
+                      <option value="Ulang Tahun">Ulang Tahun</option>
+                      <option value="Sweet 17">Sweet 17</option>
+                      <option value="Kids & Baby">Kids & Baby</option>
+                      <option value="Intimate & Bridal">Intimate & Bridal</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-[#162A4C] mb-1">
+                      Ukuran
+                    </label>
+                    <input
+                      type="text"
+                      value={pkgSize}
+                      onChange={(e) => setPkgSize(e.target.value)}
+                      placeholder="2,4m × 2,2m"
+                      className="w-full rounded-xl border border-[#EFAAB6]/60 bg-[#FFF9FA] px-3 py-2 text-xs text-[#162A4C]"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-[#162A4C] mb-1">
+                    Label Tag
+                  </label>
+                  <input
+                    type="text"
+                    value={pkgTag}
+                    onChange={(e) => setPkgTag(e.target.value)}
+                    placeholder="Baru / Best Seller"
+                    className="w-full rounded-xl border border-[#EFAAB6]/60 bg-[#FFF9FA] px-3 py-2 text-xs text-[#162A4C]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-[#162A4C] mb-1">
+                    Deskripsi Singkat
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={pkgDesc}
+                    onChange={(e) => setPkgDesc(e.target.value)}
+                    placeholder="Dekorasi balon modern elegan..."
+                    className="w-full rounded-xl border border-[#EFAAB6]/60 bg-[#FFF9FA] px-3 py-2 text-xs text-[#162A4C]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-[#162A4C] mb-1">
+                    Spesifikasi Paket (pisahkan dengan koma)
+                  </label>
+                  <input
+                    type="text"
+                    value={pkgSpecsText}
+                    onChange={(e) => setPkgSpecsText(e.target.value)}
+                    placeholder="Shimmer 2x3m, Garland Lengkung, Meja Emas..."
+                    className="w-full rounded-xl border border-[#EFAAB6]/60 bg-[#FFF9FA] px-3 py-2 text-xs text-[#162A4C]"
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleSaveAsHomepagePackage}
+                  className="w-full py-3 rounded-full bg-[#162A4C] hover:bg-[#243E6B] text-white text-xs font-extrabold shadow-lg cursor-pointer transition-colors"
+                >
+                  Simpan ke Homepage Paket ✨
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
