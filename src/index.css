@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bubu-navy: #162A4C;
+    --bubu-navy-light: #243E6B;
+    --bubu-blush: #FDEBED;
+    --bubu-blush-deep: #F7D3DA;
+    --bubu-rose: #EFAAB6;
+    --bubu-rose-dark: #D98395;
+    --bubu-cream: #FFF9FA;
+    --bubu-gold: #DFBE8A;
+  }
+
+  body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: #FFF9FA;
+    color: #162A4C;
+    overflow-x: hidden;
+  }
+}
+
+.font-display {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+}
+
+.font-script {
+  font-family: 'Caveat', cursive;
+}
+
+/* Soft Dribbble-style glassmorphism */
+.glass-pill {
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 10px 35px -10px rgba(22, 42, 76, 0.08);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(239, 170, 182, 0.28);
+  box-shadow: 0 20px 50px -20px rgba(22, 42, 76, 0.09);
+}
+
+.soft-shadow {
+  box-shadow: 0 18px 45px -18px rgba(22, 42, 76, 0.12), 0 4px 12px -4px rgba(239, 170, 182, 0.18);
+}
+
+/* Cute subtle float animation */
+@keyframes gentleFloat {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+.animate-float {
+  animation: gentleFloat 4.5s ease-in-out infinite;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+/* Custom sleek scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #FFF5F7;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #EFAAB6;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #162A4C;
+}
+
+/* Range input styling for 2D studio */
+input[type="range"] {
+  accent-color: #162A4C;
+}

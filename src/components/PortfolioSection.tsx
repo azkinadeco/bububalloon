@@ -1,0 +1,114 @@
+import { useState } from 'react'
+import { motion } from 'framer-motion'
+import { MapPin, X, Instagram } from 'lucide-react'
+import { useSiteConfig, PortfolioItem } from '../context/SiteConfigContext'
+import { StudioPresetPreview } from './Studio2D/stickerLibrary'
+
+function PortfolioVisual({ item, className = '' }: { item: PortfolioItem; className?: string }) {
+  if (item.image) {
+    return (
+      <img
+        src={item.image}
+        alt={item.title}
+        loading="lazy"
+        className={`w-full h-full object-cover ${className}`}
+      />
+    )
+  }
+  return <StudioPresetPreview presetId={item.presetId || 'bubu-signature'} className={className} />
+}
+
+export function PortfolioSection() {
+  const { config } = useSiteConfig()
+  const [activeItem, setActiveItem] = useState<PortfolioItem | null>(null)
+
+  return (
+    <section id="portofolio" className="py-20 px-4 sm:px-6 bg-[#FFF5F7]/70">
+      <div className="mx-auto max-w-6xl">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
+          <div className="space-y-1">
+            <span className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-[#D98395]">
+              Portofolio
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#162A4C]">
+              Momen Manis{' '}
+              <span className="font-display italic font-semibold text-[#D98395]">Pilihan</span>
+            </h2>
+          </div>
+
+          <a
+            href="https://instagram.com"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-[#EFAAB6]/50 text-xs font-bold text-[#162A4C] hover:bg-[#FDEBED] transition-colors self-start sm:self-auto"
+          >
+            <Instagram className="w-3.5 h-3.5 text-[#D98395]" />
+            {config.brand.instagram}
+          </a>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          {config.portfolio.map((item, idx) => (
+            <motion.button
+              key={item.id}
+              type="button"
+              onClick={() => setActiveItem(item)}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.45, delay: idx * 0.05 }}
+              className="group text-left rounded-[2rem] bg-white border border-white overflow-hidden soft-shadow hover:-translate-y-1.5 transition-all duration-300 cursor-pointer"
+            >
+              <div className="aspect-[16/10] overflow-hidden bg-[#FFF5F7]">
+                <PortfolioVisual
+                  item={item}
+                  className="group-hover:scale-105 transition-transform duration-500"
+                />
+              </div>
+              <div className="p-4 space-y-1.5">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#D98395]">
+                  {item.eventType}
+                </span>
+                <h3 className="text-sm font-extrabold text-[#162A4C]">{item.title}</h3>
+                <p className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#162A4C]/55">
+                  <MapPin className="w-3 h-3 text-[#D98395]" />
+                  {item.location}
+                </p>
+              </div>
+            </motion.button>
+          ))}
+        </div>
+      </div>
+
+      {activeItem && (
+        <div
+          onClick={() => setActiveItem(null)}
+          className="fixed inset-0 z-50 bg-[#162A4C]/45 backdrop-blur-sm flex items-center justify-center p-4"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="max-w-xl w-full rounded-[2rem] bg-white overflow-hidden shadow-2xl border border-white"
+          >
+            <div className="relative aspect-[16/10] bg-[#FFF5F7]">
+              <PortfolioVisual item={activeItem} />
+              <button
+                type="button"
+                onClick={() => setActiveItem(null)}
+                aria-label="Tutup"
+                className="absolute top-4 right-4 w-9 h-9 rounded-full glass-pill flex items-center justify-center text-[#162A4C] cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-6">
+              <span className="text-xs font-extrabold uppercase tracking-wider text-[#D98395]">
+                {activeItem.eventType} • {activeItem.location}
+              </span>
+              <h3 className="text-xl font-extrabold text-[#162A4C] mt-1">{activeItem.title}</h3>
+            </div>
+          </div>
+        </div>
+      )}
+    </section>
+  )
+}
