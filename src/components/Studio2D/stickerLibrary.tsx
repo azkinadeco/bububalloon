@@ -495,13 +495,19 @@ export function StickerSVG({ element }: { element: CanvasElement }): React.React
     case 'arch-panel':
       // Exact 2.0m total height (INCLUDING top semicircle r=50) × 1.0m width (100×200 inner)
       return (
-        <svg viewBox="0 0 116 216" className="w-full h-full drop-shadow-sm">
+        <svg viewBox="0 0 116 218" className="w-full h-full drop-shadow-md">
           <defs>
             <clipPath id={clipId}>
               <path d="M8 208 V58 A50 50 0 0 1 108 58 V208 Z" />
             </clipPath>
+            <linearGradient id={`sheen-${clipId}`} x1="0" y1="0" x2="1" y2="0.2">
+              <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.22" />
+              <stop offset="45%" stopColor="#FFFFFF" stopOpacity="0" />
+              <stop offset="100%" stopColor="#162A4C" stopOpacity="0.06" />
+            </linearGradient>
           </defs>
-          <path d="M8 208 V58 A50 50 0 0 1 108 58 V208 Z" fill={color} stroke="#162A4C" strokeOpacity="0.14" strokeWidth="2.5" />
+          <ellipse cx="58" cy="211" rx="48" ry="4.5" fill="#162A4C" opacity="0.14" />
+          <path d="M8 208 V58 A50 50 0 0 1 108 58 V208 Z" fill={color} stroke="#162A4C" strokeOpacity="0.14" strokeWidth="2.2" />
           {customImageUrl && (
             <image
               href={customImageUrl}
@@ -513,20 +519,27 @@ export function StickerSVG({ element }: { element: CanvasElement }): React.React
               clipPath={`url(#${clipId})`}
             />
           )}
-          <path d="M8 208 V58 A50 50 0 0 1 108 58 V208 Z" fill="none" stroke="#162A4C" strokeOpacity="0.14" strokeWidth="2.5" />
+          <path d="M8 208 V58 A50 50 0 0 1 108 58 V208 Z" fill={`url(#sheen-${clipId})`} pointerEvents="none" />
+          <path d="M8 208 V58 A50 50 0 0 1 108 58 V208 Z" fill="none" stroke="#162A4C" strokeOpacity="0.14" strokeWidth="2.2" />
         </svg>
       )
 
     case 'arch-panel-small':
       // Exact 1.5m total height (INCLUDING top semicircle r=45) × 0.9m width (90×150 inner)
       return (
-        <svg viewBox="0 0 106 166" className="w-full h-full drop-shadow-sm">
+        <svg viewBox="0 0 106 168" className="w-full h-full drop-shadow-md">
           <defs>
             <clipPath id={clipId}>
               <path d="M8 158 V53 A45 45 0 0 1 98 53 V158 Z" />
             </clipPath>
+            <linearGradient id={`sheen-${clipId}`} x1="0" y1="0" x2="1" y2="0.2">
+              <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.22" />
+              <stop offset="45%" stopColor="#FFFFFF" stopOpacity="0" />
+              <stop offset="100%" stopColor="#162A4C" stopOpacity="0.06" />
+            </linearGradient>
           </defs>
-          <path d="M8 158 V53 A45 45 0 0 1 98 53 V158 Z" fill={color} stroke="#162A4C" strokeOpacity="0.14" strokeWidth="2.5" />
+          <ellipse cx="53" cy="161" rx="43" ry="4" fill="#162A4C" opacity="0.14" />
+          <path d="M8 158 V53 A45 45 0 0 1 98 53 V158 Z" fill={color} stroke="#162A4C" strokeOpacity="0.14" strokeWidth="2.2" />
           {customImageUrl && (
             <image
               href={customImageUrl}
@@ -538,7 +551,8 @@ export function StickerSVG({ element }: { element: CanvasElement }): React.React
               clipPath={`url(#${clipId})`}
             />
           )}
-          <path d="M8 158 V53 A45 45 0 0 1 98 53 V158 Z" fill="none" stroke="#162A4C" strokeOpacity="0.14" strokeWidth="2.5" />
+          <path d="M8 158 V53 A45 45 0 0 1 98 53 V158 Z" fill={`url(#sheen-${clipId})`} pointerEvents="none" />
+          <path d="M8 158 V53 A45 45 0 0 1 98 53 V158 Z" fill="none" stroke="#162A4C" strokeOpacity="0.14" strokeWidth="2.2" />
         </svg>
       )
 

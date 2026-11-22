@@ -3,6 +3,7 @@ import { useSiteConfig } from '../context/SiteConfigContext'
 
 export function Footer() {
   const { config, buildWhatsAppUrl } = useSiteConfig()
+  const igHandle = config.brand.instagram.replace(/^@/, '').trim() || 'bububalloon.decor'
   const waUrl = buildWhatsAppUrl(
     `Halo Kak admin ${config.brand.name} 🎈\nSaya dapat info dari website ${config.brand.name}, mau tanya jadwal & konsultasi dekorasi balon untuk acara saya ya. Terima kasih!`
   )
@@ -65,10 +66,10 @@ export function Footer() {
         <div className="mt-7 pt-5 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-white/50">
           <p>© {new Date().getFullYear()} {config.brand.name} {config.brand.subtitle}.</p>
           <a
-            href="https://instagram.com"
+            href={`https://instagram.com/${igHandle}`}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1.5 hover:text-[#F2B3BD]"
+            className="inline-flex items-center gap-1.5 hover:text-[#F2B3BD] transition-colors"
           >
             <Instagram className="w-3.5 h-3.5" />
             {config.brand.instagram}

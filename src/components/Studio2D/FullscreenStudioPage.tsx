@@ -405,6 +405,10 @@ export default function FullscreenStudioPage({
         handleUndo()
         return
       }
+      if (e.key === '0' && !selectedId) {
+        resetViewport()
+        return
+      }
       if (!selectedId) return
 
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'd') {

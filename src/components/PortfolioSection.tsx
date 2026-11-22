@@ -67,10 +67,23 @@ export function PortfolioSection() {
                   className="group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
-              <div className="p-4 space-y-1">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#D98395]">
-                  {item.eventType}
-                </span>
+              <div className="p-4 space-y-1.5">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#D98395]">
+                    {item.eventType}
+                  </span>
+                  {item.palette?.length > 0 && (
+                    <div className="flex items-center -space-x-1">
+                      {item.palette.slice(0, 3).map((hex, i) => (
+                        <span
+                          key={i}
+                          className="w-3.5 h-3.5 rounded-full ring-1 ring-white shadow-2xs"
+                          style={{ backgroundColor: hex }}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
                 <h3 className="text-sm font-extrabold text-[#162A4C]">{item.title}</h3>
                 <p className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#162A4C]/55">
                   <MapPin className="w-3 h-3 text-[#D98395]" />
