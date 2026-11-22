@@ -744,15 +744,15 @@ export default function FullscreenStudioPage({
       .join(', ')
 
     const msg = [
-      `Halo ${config.brand.name}! 🎈`,
-      'Saya baru saja membuat konsep dekorasi di *Studio 2D Fullscreen*:',
+      `Halo Kak admin ${config.brand.name} 🎈`,
+      `Saya baru saja membuat simulasi konsep dekorasi di *Studio 2D Website ${config.brand.name}*:`,
       '',
-      `Latar: ${customBgUrl ? 'Foto Ruangan Sendiri' : currentBg.label}`,
+      `• Latar Venue: ${customBgUrl ? 'Foto Ruangan Sendiri' : currentBg.label}`,
       itemsText || '• (Konsep custom)',
-      customTexts ? `Tulisan / Angka: ${customTexts}` : null,
+      customTexts ? `• Tulisan / Angka: ${customTexts}` : null,
       '',
-      '(Saya lampirkan juga gambar PNG hasil desainnya ya!)',
-      'Boleh dibantu info detail & jadwal kosongnya? ✨',
+      '(Gambar hasil simulasi 2D saya lampirkan juga ya Kak 📸)',
+      'Boleh dibantu info estimasi & cek jadwal kosongnya? Terima kasih! ✨',
     ]
       .filter(Boolean)
       .join('\n')

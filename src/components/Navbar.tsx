@@ -24,7 +24,7 @@ export function Navbar({ onOpenSettings }: NavbarProps) {
   }, [])
 
   const waUrl = buildWhatsAppUrl(
-    `Halo ${config.brand.name}! Saya ingin tanya-tanya pemesanan dekorasi balon party. 🎈`
+    `Halo Kak admin ${config.brand.name} 🎈\nSaya dapat info dari website ${config.brand.name}, mau tanya-tanya & konsultasi dekorasi balon untuk acara saya ya. Terima kasih!`
   )
 
   return (

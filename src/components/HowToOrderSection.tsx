@@ -50,16 +50,16 @@ export function HowToOrderSection() {
   }
 
   const waMessage = [
-    `Halo ${config.brand.name}! 🎈`,
-    'Saya ingin cek jadwal & konsultasi pemesanan dekorasi:',
+    `Halo Kak admin ${config.brand.name} 🎈`,
+    `Saya dapat info dari website ${config.brand.name}, ingin cek jadwal & tanya dekorasi balon:`,
     `• Nama: ${name.trim() || '(isi nama)'}`,
     `• Tanggal Acara: ${date || 'Belum pasti'}`,
     `• Area Venue: ${area}`,
-    `• Paket: ${selectedModel}`,
+    `• Pilihan Paket: ${selectedModel}`,
     selectedAddons.length > 0 ? `• Add-ons: ${selectedAddons.join(', ')}` : null,
-    notes.trim() ? `• Catatan Tema: ${notes.trim()}` : null,
+    notes.trim() ? `• Catatan Warna / Tema: ${notes.trim()}` : null,
     '',
-    'Boleh dibantu info slot & detailnya? Terima kasih ✨',
+    'Boleh dibantu info ketersediaan jadwal & estimasinya Kak? Terima kasih! ✨',
   ]
     .filter(Boolean)
     .join('\n')

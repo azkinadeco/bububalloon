@@ -128,6 +128,7 @@ export const STICKER_DEFINITIONS: StickerDefinition[] = [
   // Balon (default 1 warna seragam, bebas diubah warna)
   { type: 'garland-arch', label: 'Garland Lengkung', category: 'Balon', defaultColor: '#F2B3BD', defaultSecondary: '#F2B3BD', defaultWidth: 42 },
   { type: 'balloon-cluster', label: 'Balon Cluster', category: 'Balon', defaultColor: '#F2B3BD', defaultSecondary: '#F2B3BD', defaultWidth: 18 },
+  { type: 'jumbo-balloon', label: 'Balon Jumbo', category: 'Balon', defaultColor: '#F2B3BD', defaultWidth: 13 },
   { type: 'foil-heart', label: 'Foil Love', category: 'Balon', defaultColor: '#D98395', defaultWidth: 10 },
   { type: 'foil-star', label: 'Foil Bintang', category: 'Balon', defaultColor: '#DFBE8A', defaultWidth: 10 },
   { type: 'ribbon-bow', label: 'Pita Satin', category: 'Balon', defaultColor: '#EFAAB6', defaultWidth: 10 },
@@ -138,7 +139,6 @@ export const STICKER_DEFINITIONS: StickerDefinition[] = [
   { type: 'cylinder-fluted-80x40', label: 'Silinder Garis 80×40', category: 'Properti', defaultColor: '#FFFDFC', defaultWidth: 12 },
   { type: 'acrylic-cube-table', label: 'Meja Acrylic Kotak', category: 'Properti', defaultColor: '#E8F4FA', defaultWidth: 12.5 },
   { type: 'gold-cross-table', label: 'Meja Emas Silang', category: 'Properti', defaultColor: '#FFFDFC', defaultSecondary: '#D4AF37', defaultWidth: 15.5 },
-  { type: 'jumbo-balloon', label: 'Balon Jumbo', category: 'Properti', defaultColor: '#F2B3BD', defaultWidth: 14 },
   { type: 'number-balloon', label: 'Balon Angka 0-9', category: 'Properti', defaultColor: '#DFBE8A', defaultWidth: 12, defaultText: '1' },
   { type: 'marquee-number', label: 'Angka Lampu', category: 'Properti', defaultColor: '#FFFDF8', defaultWidth: 15, defaultText: '17' },
   { type: 'custom-text', label: 'Tulisan Backdrop', category: 'Properti', defaultColor: '#162A4C', defaultWidth: 24, defaultText: 'Happy Birthday' },
@@ -985,11 +985,11 @@ export function StickerSVG({ element }: { element: CanvasElement }): React.React
     }
 
     case 'jumbo-balloon': {
-      // Realistic giant 24-36" round jumbo balloon with tassel tail
+      // Pure round glossy jumbo latex balloon — NO string, NO tassel!
       const light = shadeHex(color, 26)
       const dark = shadeHex(color, -18)
       return (
-        <svg viewBox="0 0 140 220" className="w-full h-full drop-shadow-md">
+        <svg viewBox="0 0 140 140" className="w-full h-full drop-shadow-md">
           <defs>
             <radialGradient id={`jumbo-${clipId}`} cx="32%" cy="28%" r="72%">
               <stop offset="0%" stopColor={light} />
@@ -997,79 +997,76 @@ export function StickerSVG({ element }: { element: CanvasElement }): React.React
               <stop offset="100%" stopColor={dark} />
             </radialGradient>
           </defs>
-          {/* Delicate ribbon string & cute paper tassels */}
-          <path d="M70 128 Q74 166 68 214" fill="none" stroke="#DFBE8A" strokeWidth="2.4" strokeLinecap="round" />
-          <path d="M62 138 L70 128 L78 138 L74 152 L66 152 Z" fill="#FDEBED" stroke="#DFBE8A" strokeWidth="1" />
-          <path d="M64 156 L71 146 L78 156 L75 170 L67 170 Z" fill="#DFBE8A" opacity="0.85" />
-          {/* Giant round jumbo balloon */}
-          <circle cx="70" cy="66" r="58" fill={`url(#jumbo-${clipId})`} stroke="#162A4C" strokeOpacity="0.08" strokeWidth="1.5" />
-          <polygon points="65,123 75,123 70,130" fill={dark} />
+          <circle cx="70" cy="70" r="60" fill={`url(#jumbo-${clipId})`} stroke="#162A4C" strokeOpacity="0.08" strokeWidth="1.5" />
           {/* Glossy studio specular shine */}
-          <ellipse cx="48" cy="44" rx="12" ry="20" fill="#FFFFFF" opacity="0.52" transform="rotate(-24 48 44)" />
-          <circle cx="38" cy="68" r="4.5" fill="#FFFFFF" opacity="0.38" />
+          <ellipse cx="47" cy="46" rx="13" ry="22" fill="#FFFFFF" opacity="0.54" transform="rotate(-24 47 46)" />
+          <circle cx="37" cy="72" r="4.8" fill="#FFFFFF" opacity="0.4" />
         </svg>
       )
     }
 
     case 'number-balloon': {
-      // Glossy metallic 3D inflated foil number balloon (0-9)
+      // Truly puffy, chubby inflated glossy foil number balloon (Fredoka rounded curves + 3D air-cushion shine!)
       const digit = (text || '1').slice(0, 1)
-      const light = shadeHex(color, 34)
-      const dark = shadeHex(color, -24)
+      const bright = shadeHex(color, 44)
+      const light = shadeHex(color, 22)
+      const dark = shadeHex(color, -26)
       return (
-        <svg viewBox="0 0 120 150" className="w-full h-full drop-shadow-md">
+        <svg viewBox="0 0 130 160" className="w-full h-full drop-shadow-md">
           <defs>
-            <linearGradient id={`foil-${clipId}`} x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor={light} />
-              <stop offset="45%" stopColor={color} />
-              <stop offset="78%" stopColor={light} />
+            <radialGradient id={`foil-${clipId}`} cx="35%" cy="30%" r="72%">
+              <stop offset="0%" stopColor={bright} />
+              <stop offset="38%" stopColor={light} />
+              <stop offset="72%" stopColor={color} />
               <stop offset="100%" stopColor={dark} />
-            </linearGradient>
+            </radialGradient>
           </defs>
-          {/* Inflated outer foil seam */}
+          {/* Chubby outer foil seam edge */}
           <text
-            x="60"
-            y="120"
+            x="65"
+            y="128"
             textAnchor="middle"
             fill={dark}
             stroke={dark}
-            strokeWidth="12"
+            strokeWidth="18"
             strokeLinejoin="round"
-            fontSize="116"
-            fontWeight="900"
-            fontFamily="Montserrat, Plus Jakarta Sans, sans-serif"
+            strokeLinecap="round"
+            fontSize="126"
+            fontWeight="700"
+            fontFamily="Fredoka, Plus Jakarta Sans, sans-serif"
           >
             {digit}
           </text>
-          {/* Glossy metallic foil body */}
+          {/* Inflated 3D metallic foil cushion body */}
           <text
-            x="60"
-            y="120"
+            x="65"
+            y="128"
             textAnchor="middle"
             fill={`url(#foil-${clipId})`}
-            stroke={light}
-            strokeWidth="3"
+            stroke={`url(#foil-${clipId})`}
+            strokeWidth="10"
             strokeLinejoin="round"
-            fontSize="116"
-            fontWeight="900"
-            fontFamily="Montserrat, Plus Jakarta Sans, sans-serif"
+            strokeLinecap="round"
+            fontSize="126"
+            fontWeight="700"
+            fontFamily="Fredoka, Plus Jakarta Sans, sans-serif"
           >
             {digit}
           </text>
-          {/* Specular foil glint highlight */}
+          {/* Soft inner glossy specular air-cushion highlight */}
           <text
-            x="57"
-            y="116"
+            x="61"
+            y="123"
             textAnchor="middle"
             fill="none"
             stroke="#FFFFFF"
-            strokeOpacity="0.48"
-            strokeWidth="2.2"
-            strokeDasharray="16 28"
+            strokeOpacity="0.62"
+            strokeWidth="4.5"
+            strokeDasharray="18 26"
             strokeLinecap="round"
-            fontSize="116"
-            fontWeight="900"
-            fontFamily="Montserrat, Plus Jakarta Sans, sans-serif"
+            fontSize="126"
+            fontWeight="700"
+            fontFamily="Fredoka, Plus Jakarta Sans, sans-serif"
           >
             {digit}
           </text>

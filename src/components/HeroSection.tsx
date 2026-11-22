@@ -1,7 +1,7 @@
 import { useState, lazy, Suspense } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowDownRight, Sparkles, ArrowUpRight, Hand } from 'lucide-react'
-import { BALLOON_MOODS } from './Hero3DScene'
+import { BALLOON_MOODS, PopBurstEvent } from './Hero3DScene'
 import { useSiteConfig } from '../context/SiteConfigContext'
 
 const Hero3DScene = lazy(() => import('./Hero3DScene'))
@@ -10,7 +10,20 @@ export function HeroSection() {
   const { config } = useSiteConfig()
   const [moodIdx, setMoodIdx] = useState(0)
   const [statusMsg, setStatusMsg] = useState<string | null>(null)
+  const [bursts, setBursts] = useState<PopBurstEvent[]>([])
   const activeMood = BALLOON_MOODS[moodIdx]
+
+  const handlePopBurst = (ev: PopBurstEvent) => {
+    setBursts((prev) => [...prev.slice(-4), ev])
+    setStatusMsg(
+      ev.isExplode
+        ? `${ev.word} Balon meledak! Muncul lagi dalam 5 detik...`
+        : `${ev.word} (${ev.tapNum}/10)`
+    )
+    window.setTimeout(() => {
+      setBursts((prev) => prev.filter((b) => b.id !== ev.id))
+    }, ev.isExplode ? 1100 : 650)
+  }
 
   return (
     <section
@@ -25,22 +38,86 @@ export function HeroSection() {
       <div className="pointer-events-none absolute -top-24 left-1/4 w-80 sm:w-[32rem] h-80 sm:h-[32rem] rounded-full bg-[#F7D3DA]/35 blur-3xl" />
       <div className="pointer-events-none absolute bottom-10 right-6 w-80 sm:w-[30rem] h-80 sm:h-[30rem] rounded-full bg-[#FDEBED]/80 blur-3xl" />
 
-      {/* Full-bleed Seamless 3D Balloon Canvas (100% integrated, NO box, interactive on PC & iPhone!) */}
+      {/* Full-bleed Seamless 3D Balloon Canvas */}
       <div className="absolute inset-0 z-0">
         <Suspense fallback={null}>
-          <Hero3DScene mood={activeMood} onStatusChange={setStatusMsg} />
+          <Hero3DScene mood={activeMood} onPopBurst={handlePopBurst} />
         </Suspense>
       </div>
 
-      {/* Subtle iPhone interactive hint right below top navbar */}
+      {/* Cute Lag-Free Floating PAW! / BLOOP! / POP! Comic-Chic Burst Overlay */}
+      <div className="pointer-events-none fixed inset-0 z-40 overflow-hidden">
+        <AnimatePresence>
+          {bursts.map((b) => (
+            <motion.div
+              key={b.id}
+              initial={{ opacity: 0, scale: 0.4, y: 8, rotate: -10 }}
+              animate={{
+                opacity: [0, 1, 1, 0],
+                scale: b.isExplode ? [0.4, 1.35, 1.15] : [0.5, 1.05, 0.95],
+                y: b.isExplode ? -36 : -26,
+                rotate: b.isExplode ? [-12, 6, 0] : [-6, 4],
+              }}
+              exit={{ opacity: 0, scale: 0.6 }}
+              transition={{ duration: b.isExplode ? 0.95 : 0.6, ease: 'easeOut' }}
+              style={{ left: b.x, top: b.y }}
+              className="fixed -translate-x-1/2 -translate-y-1/2 flex items-center justify-center"
+            >
+              {/* Cute burst rays on 10th tap explode! */}
+              {b.isExplode && (
+                <svg
+                  viewBox="0 0 120 120"
+                  className="absolute w-32 h-32 -z-10"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  {[0, 45, 90, 135, 180, 225, 270, 315].map((deg) => (
+                    <line
+                      key={deg}
+                      x1="60"
+                      y1="14"
+                      x2="60"
+                      y2="28"
+                      stroke={deg % 90 === 0 ? '#162A4C' : '#EFAAB6'}
+                      strokeWidth="4.5"
+                      strokeLinecap="round"
+                      transform={`rotate(${deg} 60 60)`}
+                    />
+                  ))}
+                  <circle
+                    cx="60"
+                    cy="60"
+                    r="38"
+                    fill="none"
+                    stroke={b.color}
+                    strokeWidth="3"
+                    strokeDasharray="8 8"
+                    opacity="0.7"
+                  />
+                </svg>
+              )}
+              <span
+                className={
+                  b.isExplode
+                    ? 'px-4 py-1.5 rounded-full bg-[#162A4C] text-[#FDEBED] font-extrabold text-xl sm:text-2xl tracking-wide shadow-xl border-2 border-white'
+                    : 'px-3 py-1 rounded-full bg-white/95 text-[#162A4C] font-extrabold text-xs sm:text-sm shadow-md border border-[#F2D5DC]'
+                }
+              >
+                {b.word}
+              </span>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
+
+      {/* Subtle iPhone interactive hint */}
       <div className="lg:hidden absolute top-20 inset-x-0 z-10 flex justify-center pointer-events-none">
         <div className="glass-pill px-3.5 py-1 rounded-full inline-flex items-center gap-1.5 text-[11px] font-bold text-[#162A4C]">
           <Hand className="w-3.5 h-3.5 text-[#D98395]" />
-          <span>{statusMsg || 'Ketuk balon 3D 10× untuk meledak!'}</span>
+          <span>{statusMsg || 'Ketuk balon 3D 10× untuk POP!'}</span>
         </div>
       </div>
 
-      {/* Editorial Foreground Content — positioned cleanly in lower showcase half on iPhone, left column on PC */}
+      {/* Editorial Foreground Content */}
       <div className="mx-auto max-w-6xl w-full px-5 sm:px-6 relative z-10 pointer-events-none mt-auto lg:mt-0 mb-4 lg:mb-0">
         <div className="max-w-lg lg:max-w-xl space-y-4 sm:space-y-6 text-center lg:text-left mx-auto lg:mx-0">
           <motion.div
@@ -111,7 +188,7 @@ export function HeroSection() {
         )}
         <div className="glass-pill rounded-full px-2.5 sm:px-3 py-1.5 flex items-center gap-1.5 sm:gap-3 pointer-events-auto max-w-full overflow-x-auto no-scrollbar">
           <span className="hidden md:inline text-[11px] font-bold text-[#162A4C]/65 pl-2 shrink-0">
-            Ketuk balon 10× untuk meledak! • Warna:
+            Ketuk balon 10× untuk POP! • Warna:
           </span>
           <div className="flex items-center gap-1.5">
             {BALLOON_MOODS.map((m, i) => {

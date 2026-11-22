@@ -1,8 +1,7 @@
 import { useRef, useMemo, useState, useEffect } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
+import { Canvas, useFrame, ThreeEvent } from '@react-three/fiber'
 import { Float, Environment, Lightformer } from '@react-three/drei'
 import * as THREE from 'three'
-import confetti from 'canvas-confetti'
 
 export interface BalloonMood {
   id: string
@@ -33,6 +32,19 @@ export const BALLOON_MOODS: BalloonMood[] = [
   },
 ]
 
+export interface PopBurstEvent {
+  id: number
+  word: string
+  x: number
+  y: number
+  color: string
+  isExplode: boolean
+  tapNum: number
+}
+
+const TAP_WORDS = ['Bloop!', 'Boop!', 'Pop!', 'Paw!']
+const BOOM_WORDS = ['PAW!', 'BLOOP!', 'POP!']
+
 function createPlushBalloonGeo(isMobile: boolean): THREE.LatheGeometry {
   const pts: THREE.Vector2[] = []
   const steps = isMobile ? 18 : 24
@@ -54,8 +66,8 @@ interface FloatingBalloonProps {
   finish: 'satin' | 'chrome' | 'pearl'
   speed: number
   rotation?: [number, number, number]
-  onTap: (color: string, tapNum: number) => void
-  onExplode: (color: string) => void
+  onTap: (color: string, tapNum: number, clientX: number, clientY: number) => void
+  onExplode: (color: string, clientX: number, clientY: number) => void
 }
 
 function FloatingBalloon({
@@ -87,8 +99,7 @@ function FloatingBalloon({
     const dt = Math.min(delta, 0.05)
 
     if (popped) {
-      // Shrink cleanly to 0 when exploded
-      ref.current.scale.setScalar(THREE.MathUtils.lerp(ref.current.scale.x, 0.0001, dt * 16))
+      ref.current.scale.setScalar(THREE.MathUtils.lerp(ref.current.scale.x, 0.0001, dt * 18))
       return
     }
 
@@ -97,7 +108,6 @@ function FloatingBalloon({
       ref.current.rotation.y += dt * 3.8 * bounceRef.current
     }
 
-    // Swells slightly more with each tap up to 9 before exploding on tap 10!
     const tensionGrow = 1 + tapCountRef.current * 0.025
     const target =
       scale *
@@ -118,18 +128,19 @@ function FloatingBalloon({
     return { color, metalness: 0.02, roughness: 0.2, clearcoat: 0.9, clearcoatRoughness: 0.11 }
   }, [color, finish])
 
-  const handleClick = (e: { stopPropagation: () => void }) => {
+  const handleClick = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation()
     if (popped) return
 
     const nextTap = tapCountRef.current + 1
     tapCountRef.current = nextTap
+    const cx = e.nativeEvent.clientX
+    const cy = e.nativeEvent.clientY
 
     if (nextTap >= 10) {
-      // 10th tap -> EXPLODE & respawn after 5 seconds!
       setPopped(true)
       tapCountRef.current = 0
-      onExplode(color)
+      onExplode(color, cx, cy)
       if (respawnTimerRef.current) window.clearTimeout(respawnTimerRef.current)
       respawnTimerRef.current = window.setTimeout(() => {
         setPopped(false)
@@ -137,7 +148,7 @@ function FloatingBalloon({
       }, 5000)
     } else {
       bounceRef.current = 1
-      onTap(color, nextTap)
+      onTap(color, nextTap, cx, cy)
     }
   }
 
@@ -181,8 +192,8 @@ function SeamlessScene({
 }: {
   mood: BalloonMood
   isMobile: boolean
-  onTap: (color: string, tapNum: number) => void
-  onExplode: (color: string) => void
+  onTap: (color: string, tapNum: number, clientX: number, clientY: number) => void
+  onExplode: (color: string, clientX: number, clientY: number) => void
 }) {
   const rootRef = useRef<THREE.Group>(null)
   const balloonGeo = useMemo(() => createPlushBalloonGeo(isMobile), [isMobile])
@@ -212,9 +223,6 @@ function SeamlessScene({
   })
 
   if (isMobile) {
-    // Sculptural Dribbble magazine-cover iPhone composition:
-    // Lush, well-spaced 3D balloons floating in the upper showcase half of the screen
-    // above the editorial headline (zero clash, zero overlap, 100% interactive!)
     return (
       <group ref={rootRef} position={[0, 0.25, 0]}>
         <FloatingBalloon
@@ -276,7 +284,6 @@ function SeamlessScene({
     )
   }
 
-  // Seamless full-bleed Desktop composition (the exact natural Dribbble layout the user loved!)
   return (
     <group ref={rootRef}>
       <FloatingBalloon
@@ -334,8 +341,6 @@ function SeamlessScene({
         onTap={onTap}
         onExplode={onExplode}
       />
-
-      {/* Ambient distant left-side balloons */}
       <FloatingBalloon
         geometry={balloonGeo}
         position={[-4.85, 1.75, -2.4]}
@@ -364,10 +369,10 @@ function SeamlessScene({
 
 interface Hero3DSceneProps {
   mood: BalloonMood
-  onStatusChange?: (msg: string) => void
+  onPopBurst?: (ev: PopBurstEvent) => void
 }
 
-export default function Hero3DScene({ mood, onStatusChange }: Hero3DSceneProps) {
+export default function Hero3DScene({ mood, onPopBurst }: Hero3DSceneProps) {
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== 'undefined' ? window.innerWidth < 768 : false
   )
@@ -379,27 +384,27 @@ export default function Hero3DScene({ mood, onStatusChange }: Hero3DSceneProps) 
     return () => mq.removeEventListener('change', onChange)
   }, [])
 
-  const handleTap = (color: string, tapNum: number) => {
-    onStatusChange?.(`Pop ${tapNum}/10 ✨`)
-    confetti({
-      particleCount: isMobile ? 10 : 14,
-      spread: 45,
-      origin: { y: 0.48, x: isMobile ? 0.5 : 0.68 },
-      colors: [color, '#FDEBED', '#DFBE8A'],
-      scalar: 0.7,
-      ticks: 70,
+  const handleTap = (color: string, tapNum: number, clientX: number, clientY: number) => {
+    onPopBurst?.({
+      id: Date.now() + Math.random(),
+      word: TAP_WORDS[(tapNum - 1) % TAP_WORDS.length],
+      x: clientX,
+      y: clientY,
+      color,
+      isExplode: false,
+      tapNum,
     })
   }
 
-  const handleExplode = (color: string) => {
-    onStatusChange?.('BOOM! 💥 Muncul lagi dalam 5 detik...')
-    confetti({
-      particleCount: isMobile ? 48 : 75,
-      spread: 95,
-      origin: { y: 0.48, x: isMobile ? 0.5 : 0.68 },
-      colors: [color, '#FDEBED', '#162A4C', '#DFBE8A', '#EFAAB6'],
-      scalar: 0.95,
-      ticks: 130,
+  const handleExplode = (color: string, clientX: number, clientY: number) => {
+    onPopBurst?.({
+      id: Date.now() + Math.random(),
+      word: BOOM_WORDS[Math.floor(Math.random() * BOOM_WORDS.length)],
+      x: clientX,
+      y: clientY,
+      color,
+      isExplode: true,
+      tapNum: 10,
     })
   }
 

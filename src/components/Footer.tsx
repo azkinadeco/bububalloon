@@ -4,7 +4,7 @@ import { useSiteConfig } from '../context/SiteConfigContext'
 export function Footer() {
   const { config, buildWhatsAppUrl } = useSiteConfig()
   const waUrl = buildWhatsAppUrl(
-    `Halo ${config.brand.name}! Saya ingin konsultasi pemesanan dekorasi balon party. 🎈`
+    `Halo Kak admin ${config.brand.name} 🎈\nSaya dapat info dari website ${config.brand.name}, mau tanya jadwal & konsultasi dekorasi balon untuk acara saya ya. Terima kasih!`
   )
 
   return (

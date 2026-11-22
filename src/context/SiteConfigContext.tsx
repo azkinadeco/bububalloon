@@ -67,7 +67,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
     heroHighlight: 'Lucu & Elegan.',
     heroSubtitle:
       'Pilih model favorit atau susun konsep 2D sendiri — tim Bubu siap dekor di Malang, Surabaya & sekitarnya.',
-    whatsappNumber: '6281234567890',
+    whatsappNumber: '6285122997943',
     instagram: '@bububalloon.decor',
     location: 'Malang, Surabaya & Sekitarnya',
     hours: 'Setiap Hari, 09.00 – 20.00 WIB',
@@ -350,8 +350,18 @@ export function SiteConfigProvider({ children }: { children: React.ReactNode }) 
     }
   }
 
-  const buildWhatsAppUrl = (message: string) =>
-    `https://wa.me/${config.brand.whatsappNumber}?text=${encodeURIComponent(message)}`
+  const normalizeWhatsAppNumber = (raw: string): string => {
+    const digits = (raw || '').replace(/\D/g, '')
+    if (!digits) return '6285122997943'
+    if (digits.startsWith('0')) return `62${digits.slice(1)}`
+    if (digits.startsWith('8')) return `62${digits}`
+    return digits
+  }
+
+  const buildWhatsAppUrl = (message: string) => {
+    const phone = normalizeWhatsAppNumber(config.brand.whatsappNumber)
+    return `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(message)}`
+  }
 
   return (
     <SiteConfigContext.Provider

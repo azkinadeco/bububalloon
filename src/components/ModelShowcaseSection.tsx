@@ -162,7 +162,7 @@ export function ModelShowcaseSection() {
                   </a>
                   <a
                     href={buildWhatsAppUrl(
-                      `Halo ${config.brand.name}! Saya tertarik dengan paket *${model.name}* (${model.size}). Boleh info detail & jadwalnya? 🎈`
+                      `Halo Kak admin ${config.brand.name} 🎈\nSaya lihat dari website dan tertarik dengan paket *${model.name}* (ukuran ${model.size}).\nBoleh dibantu info detail & cek jadwal kosongnya ya? Terima kasih!`
                     )}
                     target="_blank"
                     rel="noreferrer"
