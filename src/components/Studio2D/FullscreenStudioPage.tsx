@@ -34,6 +34,9 @@ import {
   CloudUpload,
   Loader2,
   ShieldCheck,
+  ZoomIn,
+  ZoomOut,
+  Palette,
 } from 'lucide-react'
 import { DEFAULT_GITHUB_REPO } from '../../lib/githubSync'
 import {
@@ -53,6 +56,66 @@ import { useSiteConfig, DesignModel } from '../../context/SiteConfigContext'
 
 type SidebarTab = 'elemen' | 'template' | 'latar'
 const ELEMENT_CATEGORIES: StickerCategory[] = ['Backdrop', 'Balon', 'Properti']
+
+interface StudioColorTheme {
+  id: string
+  label: string
+  backdrop: string
+  balloonPrimary: string
+  balloonSecondary: string
+  accent: string
+}
+
+const STUDIO_COLOR_THEMES: StudioColorTheme[] = [
+  {
+    id: 'blush',
+    label: 'Blush Pastel',
+    backdrop: '#FFF5F7',
+    balloonPrimary: '#F2B3BD',
+    balloonSecondary: '#FCE4E8',
+    accent: '#DFBE8A',
+  },
+  {
+    id: 'navy-gold',
+    label: 'Royal Navy',
+    backdrop: '#162A4C',
+    balloonPrimary: '#DFBE8A',
+    balloonSecondary: '#FFF9FA',
+    accent: '#D98395',
+  },
+  {
+    id: 'sage',
+    label: 'Sage Cream',
+    backdrop: '#F3EFE6',
+    balloonPrimary: '#B8D4BE',
+    balloonSecondary: '#FFFDF8',
+    accent: '#DFBE8A',
+  },
+  {
+    id: 'baby-blue',
+    label: 'Baby Sky',
+    backdrop: '#EFF6FC',
+    balloonPrimary: '#A9D1EC',
+    balloonSecondary: '#FFFDFC',
+    accent: '#DFBE8A',
+  },
+  {
+    id: 'lavender',
+    label: 'Lilac Dream',
+    backdrop: '#F5EFFC',
+    balloonPrimary: '#CFC0EE',
+    balloonSecondary: '#F8D6E0',
+    accent: '#DFBE8A',
+  },
+  {
+    id: 'terracotta',
+    label: 'Boho Latte',
+    backdrop: '#F8EFE6',
+    balloonPrimary: '#D99B82',
+    balloonSecondary: '#EAD4C0',
+    accent: '#C99B63',
+  },
+]
 
 const STUDIO_SETTINGS_KEY = 'bubu-studio-2d-settings-v1'
 const STUDIO_DRAFTS_KEY = 'bubu-studio-2d-drafts-v1'
@@ -132,6 +195,7 @@ export default function FullscreenStudioPage({
   const [activeCategory, setActiveCategory] = useState<StickerCategory>('Backdrop')
   const [colorSlot, setColorSlot] = useState<'primary' | 'secondary'>('primary')
   const [showGrid, setShowGrid] = useState(false)
+  const [zoom, setZoom] = useState(1)
   const [layersPopoverOpen, setLayersPopoverOpen] = useState(false)
   const [snapGuide, setSnapGuide] = useState<{ x: boolean; y: boolean }>({ x: false, y: false })
   const [toast, setToast] = useState<string | null>(null)
@@ -782,6 +846,48 @@ export default function FullscreenStudioPage({
     }
   }
 
+  const applyColorTheme = (theme: StudioColorTheme) => {
+    if (elements.length === 0) {
+      showToast('Tambahkan elemen dulu untuk ubah tema warna')
+      return
+    }
+    const next = elements.map((el) => {
+      if (
+        el.type === 'arch-panel' ||
+        el.type === 'arch-panel-small' ||
+        el.type === 'circle-backdrop' ||
+        el.type === 'square-backdrop-2x2' ||
+        el.type === 'square-backdrop-2x3' ||
+        el.type === 'double-arch' ||
+        el.type === 'scallop-arch'
+      ) {
+        return {
+          ...el,
+          color: theme.backdrop,
+          secondaryColor: theme.balloonSecondary,
+        }
+      }
+      if (
+        el.type === 'garland-arch' ||
+        el.type === 'balloon-cluster' ||
+        el.type === 'jumbo-balloon'
+      ) {
+        return {
+          ...el,
+          color: theme.balloonPrimary,
+          secondaryColor: theme.balloonSecondary,
+        }
+      }
+      if (el.type === 'number-balloon' || el.type === 'sequin-wall-2x2') {
+        return { ...el, color: theme.accent }
+      }
+      return el
+    })
+    commitElements(next)
+    setMobileSheet(null)
+    showToast(`Tema warna "${theme.label}" diterapkan!`)
+  }
+
   const renderSidebarContent = (tab: SidebarTab) => {
     if (tab === 'elemen') {
       return (
@@ -945,41 +1051,78 @@ export default function FullscreenStudioPage({
     }
 
     return (
-      <div className="space-y-3">
-        <button
-          type="button"
-          onClick={() => bgFileInputRef.current?.click()}
-          className="w-full py-2.5 px-3 rounded-2xl border-2 border-dashed border-[#EFAAB6] bg-white hover:bg-[#FDEBED]/50 text-[#162A4C] text-xs font-extrabold flex items-center justify-center gap-2 cursor-pointer"
-        >
-          <Upload className="w-3.5 h-3.5 text-[#D98395]" />
-          Upload Foto Ruanganmu
-        </button>
-        <div className="grid grid-cols-3 lg:grid-cols-2 gap-2">
-          {visibleBgs.map((bg) => (
-            <button
-              key={bg.id}
-              type="button"
-              onClick={() => {
-                setCustomBgUrl(null)
-                setBackgroundId(bg.id)
-                setMobileSheet(null)
-              }}
-              className={`p-1.5 rounded-xl border-2 text-left cursor-pointer ${
-                !customBgUrl && backgroundId === bg.id
-                  ? 'border-[#162A4C] bg-white shadow-xs'
-                  : 'border-transparent bg-white/85 hover:border-[#EFAAB6]'
-              }`}
-            >
-              <div className="h-9 rounded-lg mb-1 overflow-hidden flex flex-col border border-black/5">
-                <div
-                  className="flex-1"
-                  style={{ background: `linear-gradient(180deg, ${bg.wallTop}, ${bg.wallBottom})` }}
-                />
-                <div className="h-2" style={{ backgroundColor: bg.floor }} />
-              </div>
-              <span className="block text-[10px] font-bold text-[#162A4C] truncate">{bg.label}</span>
-            </button>
-          ))}
+      <div className="space-y-4">
+        {/* One-Click Color Theme Harmony */}
+        <div className="space-y-2">
+          <span className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider text-[#D98395]">
+            <Palette className="w-3 h-3" /> Ubah Tema Warna Sekaligus
+          </span>
+          <div className="grid grid-cols-3 lg:grid-cols-2 gap-1.5">
+            {STUDIO_COLOR_THEMES.map((theme) => (
+              <button
+                key={theme.id}
+                type="button"
+                onClick={() => applyColorTheme(theme)}
+                className="p-2 rounded-xl bg-white border border-[#F2D5DC]/75 hover:border-[#162A4C] active:scale-95 transition-all text-left cursor-pointer"
+              >
+                <div className="flex items-center gap-1 mb-1">
+                  {[theme.backdrop, theme.balloonPrimary, theme.balloonSecondary, theme.accent].map(
+                    (swatch, i) => (
+                      <span
+                        key={i}
+                        className="w-3.5 h-3.5 rounded-full border border-black/10"
+                        style={{ backgroundColor: swatch }}
+                      />
+                    )
+                  )}
+                </div>
+                <span className="block text-[10px] font-bold text-[#162A4C] truncate">
+                  {theme.label}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-2 pt-2 border-t border-[#FDEBED]">
+          <span className="block text-[10px] font-extrabold uppercase tracking-wider text-[#162A4C]/55">
+            Latar Ruangan
+          </span>
+          <button
+            type="button"
+            onClick={() => bgFileInputRef.current?.click()}
+            className="w-full py-2.5 px-3 rounded-2xl border-2 border-dashed border-[#EFAAB6] bg-white hover:bg-[#FDEBED]/50 text-[#162A4C] text-xs font-extrabold flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <Upload className="w-3.5 h-3.5 text-[#D98395]" />
+            Upload Foto Ruanganmu
+          </button>
+          <div className="grid grid-cols-3 lg:grid-cols-2 gap-2">
+            {visibleBgs.map((bg) => (
+              <button
+                key={bg.id}
+                type="button"
+                onClick={() => {
+                  setCustomBgUrl(null)
+                  setBackgroundId(bg.id)
+                  setMobileSheet(null)
+                }}
+                className={`p-1.5 rounded-xl border-2 text-left cursor-pointer ${
+                  !customBgUrl && backgroundId === bg.id
+                    ? 'border-[#162A4C] bg-white shadow-xs'
+                    : 'border-transparent bg-white/85 hover:border-[#EFAAB6]'
+                }`}
+              >
+                <div className="h-9 rounded-lg mb-1 overflow-hidden flex flex-col border border-black/5">
+                  <div
+                    className="flex-1"
+                    style={{ background: `linear-gradient(180deg, ${bg.wallTop}, ${bg.wallBottom})` }}
+                  />
+                  <div className="h-2" style={{ backgroundColor: bg.floor }} />
+                </div>
+                <span className="block text-[10px] font-bold text-[#162A4C] truncate">{bg.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     )
@@ -1049,6 +1192,32 @@ export default function FullscreenStudioPage({
             >
               <Grid3X3 className="w-4 h-4" />
             </button>
+            <div className="hidden sm:flex items-center gap-0.5 pl-1 border-l border-[#FDEBED]">
+              <button
+                type="button"
+                onClick={() => setZoom((z) => Math.max(0.75, +(z - 0.15).toFixed(2)))}
+                className="p-1.5 rounded-lg hover:bg-[#FFF5F7] text-[#162A4C]/75 cursor-pointer"
+                title="Perkecil Kanvas"
+              >
+                <ZoomOut className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setZoom(1)}
+                className="px-1.5 py-1 rounded-lg hover:bg-[#FFF5F7] text-[10px] font-extrabold text-[#162A4C] cursor-pointer min-w-[38px]"
+                title="Reset Zoom 100%"
+              >
+                {Math.round(zoom * 100)}%
+              </button>
+              <button
+                type="button"
+                onClick={() => setZoom((z) => Math.min(1.45, +(z + 0.15).toFixed(2)))}
+                className="p-1.5 rounded-lg hover:bg-[#FFF5F7] text-[#162A4C]/75 cursor-pointer"
+                title="Perbesar Kanvas"
+              >
+                <ZoomIn className="w-3.5 h-3.5" />
+              </button>
+            </div>
             <div className="relative">
               <button
                 type="button"
@@ -1215,9 +1384,15 @@ export default function FullscreenStudioPage({
               className="relative w-full max-w-5xl aspect-[16/10] max-h-full rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl border-2 border-white select-none touch-none bg-cover bg-center"
               style={
                 customBgUrl
-                  ? { backgroundImage: `url(${customBgUrl})` }
+                  ? {
+                      backgroundImage: `url(${customBgUrl})`,
+                      transform: `scale(${zoom})`,
+                      transition: 'transform 160ms ease-out',
+                    }
                   : {
                       background: `linear-gradient(180deg, ${currentBg.wallTop} 0%, ${currentBg.wallBottom} 78%, ${currentBg.floor} 78%, ${currentBg.floor} 100%)`,
+                      transform: `scale(${zoom})`,
+                      transition: 'transform 160ms ease-out',
                     }
               }
             >

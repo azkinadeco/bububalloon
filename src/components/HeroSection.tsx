@@ -1,7 +1,7 @@
 import { useState, lazy, Suspense } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowDownRight, Sparkles, ArrowUpRight, Hand } from 'lucide-react'
-import { BALLOON_MOODS, PopBurstEvent } from './Hero3DScene'
+import { BALLOON_MOODS, type PopBurstEvent } from './heroMoods'
 import { useSiteConfig } from '../context/SiteConfigContext'
 
 const Hero3DScene = lazy(() => import('./Hero3DScene'))
