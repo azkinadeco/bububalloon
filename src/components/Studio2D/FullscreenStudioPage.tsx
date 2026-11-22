@@ -195,6 +195,12 @@ export default function FullscreenStudioPage({
   const [colorSlot, setColorSlot] = useState<'primary' | 'secondary'>('primary')
   const [showGrid, setShowGrid] = useState(false)
   const [zoom, setZoom] = useState(1)
+  const [pan, setPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
+  const [isCompactLandscape, setIsCompactLandscape] = useState(() =>
+    typeof window !== 'undefined'
+      ? window.matchMedia('(max-height: 540px) and (orientation: landscape)').matches
+      : false
+  )
   const [layersPopoverOpen, setLayersPopoverOpen] = useState(false)
   const [snapGuide, setSnapGuide] = useState<{ x: boolean; y: boolean }>({ x: false, y: false })
   const [toast, setToast] = useState<string | null>(null)
@@ -266,6 +272,77 @@ export default function FullscreenStudioPage({
     centerY: number
     startAngle: number
   } | null>(null)
+
+  const pinchRef = useRef<{
+    startDist: number
+    startZoom: number
+    startMidX: number
+    startMidY: number
+    startPanX: number
+    startPanY: number
+  } | null>(null)
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-height: 540px) and (orientation: landscape)')
+    const onChange = () => setIsCompactLandscape(mq.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
+
+  const resetViewport = () => {
+    setZoom(1)
+    setPan({ x: 0, y: 0 })
+  }
+
+  const handleViewportTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      // Cancel any single-element drag so 2-finger pinch-to-zoom is silky smooth!
+      dragStateRef.current = null
+      const t1 = e.touches[0]
+      const t2 = e.touches[1]
+      const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY)
+      pinchRef.current = {
+        startDist: Math.max(10, dist),
+        startZoom: zoom,
+        startMidX: (t1.clientX + t2.clientX) / 2,
+        startMidY: (t1.clientY + t2.clientY) / 2,
+        startPanX: pan.x,
+        startPanY: pan.y,
+      }
+    }
+  }
+
+  const handleViewportTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length === 2 && pinchRef.current) {
+      e.preventDefault()
+      const t1 = e.touches[0]
+      const t2 = e.touches[1]
+      const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY)
+      const midX = (t1.clientX + t2.clientX) / 2
+      const midY = (t1.clientY + t2.clientY) / 2
+
+      const nextZoom = Math.max(0.65, Math.min(2.5, pinchRef.current.startZoom * (dist / pinchRef.current.startDist)))
+      setZoom(Number(nextZoom.toFixed(3)))
+      setPan({
+        x: Math.max(-320, Math.min(320, pinchRef.current.startPanX + (midX - pinchRef.current.startMidX))),
+        y: Math.max(-220, Math.min(220, pinchRef.current.startPanY + (midY - pinchRef.current.startMidY))),
+      })
+    }
+  }
+
+  const handleViewportTouchEnd = (e: React.TouchEvent) => {
+    if (e.touches.length < 2) {
+      pinchRef.current = null
+    }
+  }
+
+  const handleViewportWheel = (e: React.WheelEvent) => {
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault()
+      const delta = -e.deltaY * 0.005
+      setZoom((z) => Number(Math.max(0.65, Math.min(2.5, z + delta)).toFixed(3)))
+    }
+  }
 
   const currentBg = ROOM_BACKGROUNDS.find((b) => b.id === backgroundId) ?? ROOM_BACKGROUNDS[0]
   const selectedEl = elements.find((el) => el.id === selectedId) ?? null
@@ -683,9 +760,11 @@ export default function FullscreenStudioPage({
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    if (customBgUrl) {
+    const bgImageSrc = customBgUrl || currentBg.imageUrl
+    if (bgImageSrc) {
       await new Promise<void>((resolve) => {
         const bgImg = new Image()
+        bgImg.crossOrigin = 'anonymous'
         bgImg.onload = () => {
           const scale = Math.max(exportW / bgImg.width, exportH / bgImg.height)
           const dw = bgImg.width * scale
@@ -694,7 +773,7 @@ export default function FullscreenStudioPage({
           resolve()
         }
         bgImg.onerror = () => resolve()
-        bgImg.src = customBgUrl
+        bgImg.src = bgImageSrc
       })
     } else {
       const grad = ctx.createLinearGradient(0, 0, 0, exportH * 0.78)
@@ -1102,12 +1181,23 @@ export default function FullscreenStudioPage({
                     : 'border-transparent bg-white/85 hover:border-[#EFAAB6]'
                 }`}
               >
-                <div className="h-9 rounded-lg mb-1 overflow-hidden flex flex-col border border-black/5">
-                  <div
-                    className="flex-1"
-                    style={{ background: `linear-gradient(180deg, ${bg.wallTop}, ${bg.wallBottom})` }}
-                  />
-                  <div className="h-2" style={{ backgroundColor: bg.floor }} />
+                <div className="h-11 rounded-lg mb-1 overflow-hidden flex flex-col border border-black/5 bg-[#FFF5F7]">
+                  {bg.imageUrl ? (
+                    <img
+                      src={bg.imageUrl}
+                      alt={bg.label}
+                      loading="lazy"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <>
+                      <div
+                        className="flex-1"
+                        style={{ background: `linear-gradient(180deg, ${bg.wallTop}, ${bg.wallBottom})` }}
+                      />
+                      <div className="h-2" style={{ backgroundColor: bg.floor }} />
+                    </>
+                  )}
                 </div>
                 <span className="block text-[10px] font-bold text-[#162A4C] truncate">{bg.label}</span>
               </button>
@@ -1143,8 +1233,12 @@ export default function FullscreenStudioPage({
         className="hidden"
       />
 
-      {/* Clean Minimal Top Bar */}
-      <header className="h-13 px-3 sm:px-4 bg-white border-b border-[#FDEBED] flex items-center justify-between gap-2 shrink-0 z-30">
+      {/* Clean Minimal Top Bar (ultra-slim in mobile landscape for huge canvas!) */}
+      <header
+        className={`${
+          isCompactLandscape ? 'h-10 px-2.5' : 'h-13 px-3 sm:px-4'
+        } bg-white border-b border-[#FDEBED] flex items-center justify-between gap-2 shrink-0 z-30`}
+      >
         <div className="flex items-center gap-1.5 sm:gap-2.5">
           <a
             href="/"
@@ -1193,7 +1287,7 @@ export default function FullscreenStudioPage({
               </button>
               <button
                 type="button"
-                onClick={() => setZoom(1)}
+                onClick={resetViewport}
                 className="px-1.5 py-1 rounded-lg hover:bg-[#FFF5F7] text-[10px] font-extrabold text-[#162A4C] cursor-pointer min-w-[38px]"
                 title="Reset Zoom 100%"
               >
@@ -1201,7 +1295,7 @@ export default function FullscreenStudioPage({
               </button>
               <button
                 type="button"
-                onClick={() => setZoom((z) => Math.min(1.45, +(z + 0.15).toFixed(2)))}
+                onClick={() => setZoom((z) => Math.min(2.5, +(z + 0.15).toFixed(2)))}
                 className="p-1.5 rounded-lg hover:bg-[#FFF5F7] text-[#162A4C]/75 cursor-pointer"
                 title="Perbesar Kanvas"
               >
@@ -1321,8 +1415,56 @@ export default function FullscreenStudioPage({
         </div>
       </header>
 
-      {/* Spacious 2-Pane Canva Workspace (Sidebar Left on PC + Huge Canvas + Contextual Bar Below Canvas!) */}
-      <div className="flex-1 min-h-0 flex overflow-hidden">
+      {/* Spacious Canva Workspace (Desktop Sidebar OR Mobile Landscape Left Rail + Huge Pinch-Zoom Canvas!) */}
+      <div className="flex-1 min-h-0 flex overflow-hidden relative">
+        {/* Mobile Landscape Left Slim Vertical Tool Rail (Procreate/Canva Landscape style!) */}
+        {isCompactLandscape && (
+          <nav className="lg:hidden w-14 bg-white border-r border-[#FDEBED] py-2 flex flex-col items-center gap-2 shrink-0 z-30">
+            {[
+              { id: 'elemen' as const, label: 'Elemen', icon: Plus },
+              { id: 'template' as const, label: 'Paket', icon: LayoutTemplate },
+              { id: 'latar' as const, label: 'Latar', icon: ImageIcon },
+            ].map((tab) => {
+              const Icon = tab.icon
+              const active = mobileSheet === tab.id
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setMobileSheet(active ? null : tab.id)}
+                  className={`w-11 py-2 rounded-xl flex flex-col items-center justify-center gap-0.5 text-[9px] font-extrabold transition-colors cursor-pointer ${
+                    active ? 'bg-[#162A4C] text-white shadow-xs' : 'bg-[#FFF5F7] text-[#162A4C]'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  {tab.label}
+                </button>
+              )
+            })}
+          </nav>
+        )}
+
+        {/* Mobile Landscape Left Slide-Over Panel */}
+        {isCompactLandscape && mobileSheet && (
+          <div className="lg:hidden w-64 bg-[#FFF9FA] border-r border-[#FDEBED] shadow-xl p-3 flex flex-col gap-2 overflow-y-auto shrink-0 z-30">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-extrabold text-[#162A4C] uppercase tracking-wider">
+                {mobileSheet === 'elemen' && 'Tempel Elemen'}
+                {mobileSheet === 'template' && 'Template & Draft'}
+                {mobileSheet === 'latar' && 'Latar & Tema'}
+              </span>
+              <button
+                type="button"
+                onClick={() => setMobileSheet(null)}
+                className="w-6 h-6 rounded-full bg-white text-[#162A4C] flex items-center justify-center cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+            {renderSidebarContent(mobileSheet)}
+          </div>
+        )}
+
         {/* Desktop Left Sidebar */}
         <aside className="hidden lg:flex w-72 bg-[#FFF9FA] border-r border-[#FDEBED] p-3.5 flex-col gap-3 shrink-0 overflow-y-auto">
           <div className="grid grid-cols-3 gap-1 p-1 rounded-2xl bg-white border border-[#F2D5DC]/60 shrink-0">
@@ -1352,15 +1494,39 @@ export default function FullscreenStudioPage({
         </aside>
 
         {/* HUGE Center Canvas + Direct Contextual Edit Strip */}
-        <main className="flex-1 min-h-0 flex flex-col items-center justify-center p-2.5 sm:p-5 overflow-hidden relative">
+        <main
+          className={`flex-1 min-h-0 flex flex-col items-center justify-center ${
+            isCompactLandscape ? 'p-1.5' : 'p-2.5 sm:p-5'
+          } overflow-hidden relative`}
+        >
           {toast && (
             <div className="md:hidden absolute top-2 z-30 px-3.5 py-1 rounded-full bg-[#162A4C] text-white text-[11px] font-bold shadow-md">
               {toast}
             </div>
           )}
 
-          {/* Canvas Container */}
-          <div className="flex-1 min-h-0 w-full flex items-center justify-center">
+          {/* Pinch-to-Zoom & 2-Finger Pan Canvas Viewport */}
+          <div
+            onTouchStart={handleViewportTouchStart}
+            onTouchMove={handleViewportTouchMove}
+            onTouchEnd={handleViewportTouchEnd}
+            onWheel={handleViewportWheel}
+            className="flex-1 min-h-0 w-full flex items-center justify-center overflow-hidden relative touch-none"
+          >
+            {/* Floating Reset Zoom Pill (shows when pinched/zoomed!) */}
+            {(zoom !== 1 || pan.x !== 0 || pan.y !== 0) && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  resetViewport()
+                }}
+                className="absolute bottom-2.5 right-2.5 z-40 px-3 py-1.5 rounded-full bg-[#162A4C]/90 text-white text-[11px] font-extrabold shadow-lg backdrop-blur-sm hover:bg-[#162A4C] cursor-pointer"
+              >
+                {Math.round(zoom * 100)}% • Reset
+              </button>
+            )}
+
             <div
               ref={stageRef}
               onPointerMove={handleStagePointerMove}
@@ -1371,22 +1537,22 @@ export default function FullscreenStudioPage({
                 setMobileSheet(null)
                 setLayersPopoverOpen(false)
               }}
-              className="relative w-full max-w-5xl aspect-[16/10] max-h-full rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl border-2 border-white select-none touch-none bg-cover bg-center"
+              className="relative w-full max-w-5xl aspect-[16/10] max-h-full rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl border-2 border-white select-none touch-none bg-cover bg-center will-change-transform"
               style={
-                customBgUrl
+                customBgUrl || currentBg.imageUrl
                   ? {
-                      backgroundImage: `url(${customBgUrl})`,
-                      transform: `scale(${zoom})`,
-                      transition: 'transform 160ms ease-out',
+                      backgroundImage: `url(${customBgUrl || currentBg.imageUrl})`,
+                      transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`,
+                      transition: pinchRef.current ? 'none' : 'transform 120ms ease-out',
                     }
                   : {
                       background: `linear-gradient(180deg, ${currentBg.wallTop} 0%, ${currentBg.wallBottom} 78%, ${currentBg.floor} 78%, ${currentBg.floor} 100%)`,
-                      transform: `scale(${zoom})`,
-                      transition: 'transform 160ms ease-out',
+                      transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`,
+                      transition: pinchRef.current ? 'none' : 'transform 120ms ease-out',
                     }
               }
             >
-              {!customBgUrl && (
+              {!customBgUrl && !currentBg.imageUrl && (
                 <div data-room-overlay className="pointer-events-none absolute inset-0">
                   <RoomBackgroundOverlay bg={currentBg} />
                 </div>
@@ -1724,14 +1890,14 @@ export default function FullscreenStudioPage({
         </main>
       </div>
 
-      {/* iPhone / Mobile Collapsible Bottom Sheet (Only for adding Elemen / Template / Latar) */}
-      {mobileSheet && (
+      {/* iPhone / Mobile Portrait Collapsible Bottom Sheet (hidden in Landscape where Left Rail is used!) */}
+      {!isCompactLandscape && mobileSheet && (
         <div className="lg:hidden bg-white border-t border-[#FDEBED] shadow-2xl rounded-t-3xl px-4 pt-3 pb-3 max-h-[38dvh] overflow-y-auto shrink-0 z-30">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-extrabold text-[#162A4C] uppercase tracking-wider">
               {mobileSheet === 'elemen' && 'Tempel Elemen'}
               {mobileSheet === 'template' && 'Template & Draft'}
-              {mobileSheet === 'latar' && 'Latar Ruangan'}
+              {mobileSheet === 'latar' && 'Latar & Tema'}
             </span>
             <button
               type="button"
@@ -1745,30 +1911,32 @@ export default function FullscreenStudioPage({
         </div>
       )}
 
-      {/* Ultra-Simple 3-Tab iPhone Bottom Dock */}
-      <nav className="lg:hidden bg-white border-t border-[#FDEBED] px-3 pt-1.5 pb-safe grid grid-cols-3 gap-2 shrink-0 z-30">
-        {[
-          { id: 'elemen' as const, label: 'Tempel Elemen', icon: Plus },
-          { id: 'template' as const, label: 'Template', icon: LayoutTemplate },
-          { id: 'latar' as const, label: 'Latar Venue', icon: ImageIcon },
-        ].map((tab) => {
-          const Icon = tab.icon
-          const active = mobileSheet === tab.id
-          return (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setMobileSheet(active ? null : tab.id)}
-              className={`py-2.5 rounded-2xl flex items-center justify-center gap-1.5 text-xs font-bold transition-colors ${
-                active ? 'bg-[#162A4C] text-white' : 'bg-[#FFF5F7] text-[#162A4C]'
-              }`}
-            >
-              <Icon className="w-4 h-4" />
-              {tab.label}
-            </button>
-          )
-        })}
-      </nav>
+      {/* Ultra-Simple 3-Tab iPhone Portrait Bottom Dock (hidden in Landscape!) */}
+      {!isCompactLandscape && (
+        <nav className="lg:hidden bg-white border-t border-[#FDEBED] px-3 pt-1.5 pb-safe grid grid-cols-3 gap-2 shrink-0 z-30">
+          {[
+            { id: 'elemen' as const, label: 'Tempel Elemen', icon: Plus },
+            { id: 'template' as const, label: 'Template', icon: LayoutTemplate },
+            { id: 'latar' as const, label: 'Latar Venue', icon: ImageIcon },
+          ].map((tab) => {
+            const Icon = tab.icon
+            const active = mobileSheet === tab.id
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setMobileSheet(active ? null : tab.id)}
+                className={`py-2.5 rounded-2xl flex items-center justify-center gap-1.5 text-xs font-bold transition-colors ${
+                  active ? 'bg-[#162A4C] text-white' : 'bg-[#FFF5F7] text-[#162A4C]'
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                {tab.label}
+              </button>
+            )
+          })}
+        </nav>
+      )}
 
       {/* Studio 2D Content Settings Drawer (Admin-Only via GitHub Personal Access Token) */}
       {studioSettingsOpen && (

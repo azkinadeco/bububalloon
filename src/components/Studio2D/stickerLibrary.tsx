@@ -96,18 +96,19 @@ export interface RoomBackground {
   wallBottom: string
   floor: string
   accent: string
+  imageUrl?: string
   style: 'studio' | 'living' | 'hotel' | 'resto' | 'cafe' | 'stage' | 'ballroom' | 'outdoor'
 }
 
 export const ROOM_BACKGROUNDS: RoomBackground[] = [
-  { id: 'blush', label: 'Studio Blush', wallTop: '#FFF7F9', wallBottom: '#FCE8EC', floor: '#F1D6DC', accent: '#EFAAB6', style: 'studio' },
-  { id: 'living-room', label: 'Ruang Tamu', wallTop: '#FAF6F0', wallBottom: '#EDE3D7', floor: '#C9A785', accent: '#D8C7B4', style: 'living' },
-  { id: 'hotel-lobby', label: 'Lobby Hotel', wallTop: '#F5F0E8', wallBottom: '#E6DCCE', floor: '#D5CBBF', accent: '#DFBE8A', style: 'hotel' },
-  { id: 'resto', label: 'Resto', wallTop: '#2E2622', wallBottom: '#4A3B33', floor: '#241D19', accent: '#E5BE8A', style: 'resto' },
-  { id: 'cafe', label: 'Cafe Estetik', wallTop: '#F7F1EB', wallBottom: '#E9DDD0', floor: '#B89577', accent: '#C9A98B', style: 'cafe' },
-  { id: 'stage', label: 'Atas Panggung', wallTop: '#111829', wallBottom: '#1F2B47', floor: '#26201E', accent: '#FFE49E', style: 'stage' },
-  { id: 'ballroom', label: 'Ballroom', wallTop: '#F8F2E9', wallBottom: '#E8DBC7', floor: '#C9B8A3', accent: '#DFBE8A', style: 'ballroom' },
-  { id: 'outdoor', label: 'Outdoor Taman', wallTop: '#CBE8FF', wallBottom: '#F2F9FF', floor: '#8EB87F', accent: '#6B995E', style: 'outdoor' },
+  { id: 'blush', label: 'Studio Parisian', wallTop: '#FFF7F9', wallBottom: '#FCE8EC', floor: '#F1D6DC', accent: '#EFAAB6', imageUrl: '/rooms/blush-studio.jpg', style: 'studio' },
+  { id: 'living-room', label: 'Ruang Tamu', wallTop: '#FAF6F0', wallBottom: '#EDE3D7', floor: '#C9A785', accent: '#D8C7B4', imageUrl: '/rooms/modern-living.jpg', style: 'living' },
+  { id: 'ballroom', label: 'Hotel Ballroom', wallTop: '#F8F2E9', wallBottom: '#E8DBC7', floor: '#C9B8A3', accent: '#DFBE8A', imageUrl: '/rooms/luxury-ballroom.jpg', style: 'ballroom' },
+  { id: 'cafe', label: 'Cafe Estetik', wallTop: '#F7F1EB', wallBottom: '#E9DDD0', floor: '#B89577', accent: '#C9A98B', imageUrl: '/rooms/warm-cafe.jpg', style: 'cafe' },
+  { id: 'outdoor', label: 'Garden Terrace', wallTop: '#CBE8FF', wallBottom: '#F2F9FF', floor: '#8EB87F', accent: '#6B995E', imageUrl: '/rooms/garden-terrace.jpg', style: 'outdoor' },
+  { id: 'stage', label: 'Glam Stage', wallTop: '#111829', wallBottom: '#1F2B47', floor: '#26201E', accent: '#FFE49E', imageUrl: '/rooms/glam-stage.jpg', style: 'stage' },
+  { id: 'hotel-lobby', label: 'Lobby Klasik', wallTop: '#F5F0E8', wallBottom: '#E6DCCE', floor: '#D5CBBF', accent: '#DFBE8A', imageUrl: '/rooms/luxury-ballroom.jpg', style: 'hotel' },
+  { id: 'resto', label: 'Resto Malam', wallTop: '#2E2622', wallBottom: '#4A3B33', floor: '#241D19', accent: '#E5BE8A', imageUrl: '/rooms/glam-stage.jpg', style: 'resto' },
 ]
 
 /**
@@ -1080,47 +1081,79 @@ export function StickerSVG({ element }: { element: CanvasElement }): React.React
       )
     }
 
-    case 'teddy-bear':
+    case 'teddy-bear': {
+      const dark = shadeHex(color, -18)
+      const light = shadeHex(color, 18)
       return (
-        <svg viewBox="0 0 110 130" className="w-full h-full drop-shadow-sm">
-          <circle cx="32" cy="28" r="14" fill={color} />
-          <circle cx="78" cy="28" r="14" fill={color} />
-          <circle cx="32" cy="28" r="7" fill="#F3DEC9" />
-          <circle cx="78" cy="28" r="7" fill="#F3DEC9" />
-          <ellipse cx="55" cy="92" rx="30" ry="30" fill={color} />
-          <ellipse cx="55" cy="94" rx="17" ry="18" fill="#F3DEC9" />
-          <circle cx="55" cy="48" r="27" fill={color} />
-          <ellipse cx="55" cy="56" rx="13" ry="9" fill="#F3DEC9" />
-          <circle cx="45" cy="44" r="3.2" fill="#162A4C" />
-          <circle cx="65" cy="44" r="3.2" fill="#162A4C" />
+        <svg viewBox="0 0 110 132" className="w-full h-full drop-shadow-md">
+          <defs>
+            <radialGradient id={`bear-${clipId}`} cx="38%" cy="30%" r="70%">
+              <stop offset="0%" stopColor={light} />
+              <stop offset="65%" stopColor={color} />
+              <stop offset="100%" stopColor={dark} />
+            </radialGradient>
+          </defs>
+          <ellipse cx="55" cy="122" rx="30" ry="6" fill="#162A4C" opacity="0.12" />
+          <circle cx="30" cy="27" r="14" fill={`url(#bear-${clipId})`} />
+          <circle cx="80" cy="27" r="14" fill={`url(#bear-${clipId})`} />
+          <circle cx="30" cy="27" r="7.5" fill="#F6E3D0" />
+          <circle cx="80" cy="27" r="7.5" fill="#F6E3D0" />
+          <ellipse cx="26" cy="86" rx="11" ry="17" fill={dark} transform="rotate(20 26 86)" />
+          <ellipse cx="84" cy="86" rx="11" ry="17" fill={dark} transform="rotate(-20 84 86)" />
+          <ellipse cx="55" cy="92" rx="30" ry="30" fill={`url(#bear-${clipId})`} />
+          <ellipse cx="55" cy="95" rx="17" ry="18" fill="#F6E3D0" />
+          <ellipse cx="36" cy="113" rx="12" ry="10" fill={color} stroke={dark} strokeWidth="1.2" />
+          <ellipse cx="74" cy="113" rx="12" ry="10" fill={color} stroke={dark} strokeWidth="1.2" />
+          <circle cx="55" cy="48" r="27" fill={`url(#bear-${clipId})`} />
+          <ellipse cx="55" cy="56" rx="13.5" ry="9.5" fill="#F6E3D0" />
+          <circle cx="44" cy="44" r="3.4" fill="#162A4C" />
+          <circle cx="66" cy="44" r="3.4" fill="#162A4C" />
+          <circle cx="43" cy="42.8" r="1.1" fill="#FFFFFF" />
+          <circle cx="65" cy="42.8" r="1.1" fill="#FFFFFF" />
           <ellipse cx="55" cy="53" rx="4.5" ry="3" fill="#5D3E28" />
-          <path d="M44 74 L55 79 L44 84 Z M66 74 L55 79 L66 84 Z" fill="#EFAAB6" />
+          <path d="M43 74 L55 79 L43 85 Z M67 74 L55 79 L67 85 Z" fill="#EFAAB6" />
+          <circle cx="55" cy="79" r="3.5" fill="#D98395" />
         </svg>
       )
+    }
 
-    case 'ribbon-cake':
+    case 'ribbon-cake': {
+      const dark = shadeHex(color, -12)
       return (
-        <svg viewBox="0 0 110 100" className="w-full h-full drop-shadow-sm">
-          <rect x="20" y="78" width="70" height="8" rx="4" fill="#DFBE8A" />
-          <rect x="26" y="42" width="58" height="36" rx="8" fill={color} stroke="#EFAAB6" strokeWidth="2" />
-          <path d="M26 58 Q55 68 84 58" fill="none" stroke="#EFAAB6" strokeWidth="4" />
-          <rect x="52" y="22" width="6" height="20" rx="3" fill="#162A4C" />
-          <ellipse cx="55" cy="17" rx="5" ry="7" fill="#FFD166" />
+        <svg viewBox="0 0 110 105" className="w-full h-full drop-shadow-md">
+          <ellipse cx="55" cy="92" rx="38" ry="6" fill="#162A4C" opacity="0.12" />
+          <rect x="48" y="83" width="14" height="10" rx="2" fill="#C9A86A" />
+          <rect x="18" y="79" width="74" height="7" rx="3.5" fill="#DFBE8A" />
+          <rect x="24" y="46" width="62" height="33" rx="8" fill={color} stroke={dark} strokeWidth="1.5" />
+          <rect x="33" y="29" width="44" height="20" rx="6" fill={shadeHex(color, 6)} stroke={dark} strokeWidth="1.2" />
+          <path d="M24 61 Q39 69 55 61 T86 61" fill="none" stroke="#EFAAB6" strokeWidth="3.5" strokeLinecap="round" />
+          <path d="M33 41 Q44 46 55 41 T77 41" fill="none" stroke="#EFAAB6" strokeWidth="2.8" strokeLinecap="round" />
+          <circle cx="55" cy="61" r="4" fill="#D98395" />
+          <rect x="52.5" y="13" width="5" height="16" rx="2.5" fill="#162A4C" />
+          <ellipse cx="55" cy="9" rx="4.2" ry="6.2" fill="#FFD166" />
         </svg>
       )
+    }
 
-    case 'floral-bouquet':
+    case 'floral-bouquet': {
+      const light = shadeHex(color, 22)
+      const dark = shadeHex(color, -18)
       return (
-        <svg viewBox="0 0 120 120" className="w-full h-full drop-shadow-sm">
-          <path d="M40 76 L60 112 L80 76 Z" fill="#FFFDFC" stroke="#DFBE8A" strokeWidth="2.5" />
-          <ellipse cx="38" cy="54" rx="14" ry="8" fill="#A9C9B3" transform="rotate(-35 38 54)" />
-          <ellipse cx="82" cy="54" rx="14" ry="8" fill="#A9C9B3" transform="rotate(35 82 54)" />
-          <circle cx="46" cy="58" r="15" fill={color} />
-          <circle cx="74" cy="58" r="15" fill="#FDEBED" stroke={color} strokeWidth="2" />
-          <circle cx="60" cy="42" r="17" fill={color} />
-          <circle cx="60" cy="42" r="7" fill="#FFFDFC" opacity="0.6" />
+        <svg viewBox="0 0 120 124" className="w-full h-full drop-shadow-md">
+          <path d="M36 74 L60 116 L84 74 Z" fill="#FFFDFC" stroke="#DFBE8A" strokeWidth="2.5" strokeLinejoin="round" />
+          <path d="M44 74 L60 114 L76 74 Z" fill="#FDEBED" opacity="0.7" />
+          <ellipse cx="34" cy="54" rx="16" ry="8" fill="#8FB89B" transform="rotate(-35 34 54)" />
+          <ellipse cx="86" cy="54" rx="16" ry="8" fill="#8FB89B" transform="rotate(35 86 54)" />
+          <ellipse cx="60" cy="24" rx="8" ry="15" fill="#A9C9B3" />
+          <circle cx="44" cy="58" r="16" fill={color} stroke={dark} strokeWidth="1.2" />
+          <circle cx="76" cy="58" r="16" fill={light} stroke={color} strokeWidth="1.5" />
+          <circle cx="60" cy="41" r="18" fill={color} stroke={dark} strokeWidth="1.2" />
+          <circle cx="60" cy="41" r="9" fill={light} opacity="0.75" />
+          <circle cx="44" cy="58" r="7" fill="#FFFDFC" opacity="0.45" />
+          <circle cx="60" cy="90" r="5" fill="#EFAAB6" />
         </svg>
       )
+    }
   }
 }
 
@@ -1143,12 +1176,16 @@ export function StudioPresetPreview({
 
   return (
     <div
-      className={`relative w-full h-full overflow-hidden select-none ${className}`}
-      style={{
-        background: `linear-gradient(180deg, ${bg.wallTop} 0%, ${bg.wallBottom} 78%, ${bg.floor} 78%, ${bg.floor} 100%)`,
-      }}
+      className={`relative w-full h-full overflow-hidden select-none bg-cover bg-center ${className}`}
+      style={
+        bg.imageUrl
+          ? { backgroundImage: `url(${bg.imageUrl})` }
+          : {
+              background: `linear-gradient(180deg, ${bg.wallTop} 0%, ${bg.wallBottom} 78%, ${bg.floor} 78%, ${bg.floor} 100%)`,
+            }
+      }
     >
-      <RoomBackgroundOverlay bg={bg} />
+      {!bg.imageUrl && <RoomBackgroundOverlay bg={bg} />}
       {activeElements.map((el) => (
         <div
           key={el.id}
