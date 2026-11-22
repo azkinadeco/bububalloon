@@ -12,11 +12,26 @@
     --bubu-gold: #DFBE8A;
   }
 
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
   body {
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
     background-color: #FFF9FA;
     color: #162A4C;
     overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: none;
+  }
+
+  /* Prevent iOS Safari auto-zoom on form inputs */
+  @media (max-width: 767px) {
+    input,
+    select,
+    textarea {
+      font-size: 16px !important;
+    }
   }
 }
 
@@ -28,28 +43,26 @@
   font-family: 'Caveat', cursive;
 }
 
-/* Soft Dribbble-style glassmorphism */
 .glass-pill {
-  background: rgba(255, 255, 255, 0.78);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  border: 1px solid rgba(255, 255, 255, 0.9);
-  box-shadow: 0 10px 35px -10px rgba(22, 42, 76, 0.08);
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.92);
+  box-shadow: 0 10px 30px -10px rgba(22, 42, 76, 0.08);
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   border: 1px solid rgba(239, 170, 182, 0.28);
-  box-shadow: 0 20px 50px -20px rgba(22, 42, 76, 0.09);
+  box-shadow: 0 18px 45px -18px rgba(22, 42, 76, 0.09);
 }
 
 .soft-shadow {
-  box-shadow: 0 18px 45px -18px rgba(22, 42, 76, 0.12), 0 4px 12px -4px rgba(239, 170, 182, 0.18);
+  box-shadow: 0 16px 40px -16px rgba(22, 42, 76, 0.11), 0 4px 12px -4px rgba(239, 170, 182, 0.16);
 }
 
-/* Cute subtle float animation */
 @keyframes gentleFloat {
   0%, 100% { transform: translateY(0px); }
   50% { transform: translateY(-8px); }
@@ -64,26 +77,24 @@
   100% { transform: translateX(-50%); }
 }
 
-/* Custom sleek scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+/* Hide scrollbars cleanly for iPhone horizontal pill strips */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
-::-webkit-scrollbar-track {
-  background: #FFF5F7;
+/* Safe area helpers for iPhone notch & Home Indicator */
+.pb-safe {
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
 }
 
-::-webkit-scrollbar-thumb {
-  background: #EFAAB6;
-  border-radius: 999px;
+.pt-safe {
+  padding-top: max(0.75rem, env(safe-area-inset-top));
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #162A4C;
-}
-
-/* Range input styling for 2D studio */
 input[type="range"] {
   accent-color: #162A4C;
 }

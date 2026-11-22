@@ -90,6 +90,8 @@ export default function FullscreenStudioPage({ initialPresetId }: FullscreenStud
   const [studioSettingsOpen, setStudioSettingsOpen] = useState(false)
   const [studioSettingsTab, setStudioSettingsTab] = useState<'elemen' | 'template' | 'latar'>('elemen')
   const [showLayers, setShowLayers] = useState(false)
+  // iPhone / mobile Canva-style collapsible bottom sheet
+  const [mobileSheet, setMobileSheet] = useState<'elemen' | 'template' | 'latar' | 'atur' | 'layer' | null>(null)
 
   const [savedDrafts, setSavedDrafts] = useState<SavedDraft[]>(() => {
     try {
@@ -702,8 +704,8 @@ export default function FullscreenStudioPage({ initialPresetId }: FullscreenStud
 
       {/* Main Fullscreen Workspace */}
       <div className="flex-1 min-h-0 flex flex-col lg:flex-row overflow-hidden">
-        {/* Left Sidebar */}
-        <aside className="lg:w-72 bg-[#FFF9FA] border-b lg:border-b-0 lg:border-r border-[#FDEBED] p-3 flex flex-col gap-3 shrink-0 overflow-y-auto max-h-[29vh] lg:max-h-none">
+        {/* Desktop Left Sidebar (hidden on mobile — replaced by iPhone Bottom Sheet!) */}
+        <aside className="hidden lg:flex lg:w-72 bg-[#FFF9FA] border-r border-[#FDEBED] p-3 flex-col gap-3 shrink-0 overflow-y-auto">
           <div className="grid grid-cols-3 gap-1 p-1 rounded-2xl bg-white border border-[#F2D5DC]/60 shrink-0">
             {[
               { id: 'elemen' as const, label: 'Elemen', icon: Plus },
@@ -928,7 +930,10 @@ export default function FullscreenStudioPage({ initialPresetId }: FullscreenStud
             onPointerMove={handleStagePointerMove}
             onPointerUp={handleStagePointerUp}
             onPointerCancel={handleStagePointerUp}
-            onClick={() => setSelectedId(null)}
+            onClick={() => {
+              setSelectedId(null)
+              setMobileSheet(null)
+            }}
             className="relative w-full max-w-4xl aspect-[16/10] max-h-full rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl border-2 border-white select-none touch-none bg-cover bg-center"
             style={
               customBgUrl
@@ -998,8 +1003,8 @@ export default function FullscreenStudioPage({ initialPresetId }: FullscreenStud
           </div>
         </main>
 
-        {/* Right Inspector + Layer List Toggle */}
-        <aside className="lg:w-64 bg-white border-t lg:border-t-0 lg:border-l border-[#FDEBED] p-3.5 sm:p-4 shrink-0 overflow-y-auto max-h-[28vh] lg:max-h-none">
+        {/* Desktop Right Inspector (hidden on mobile — replaced by iPhone Bottom Sheet!) */}
+        <aside className="hidden lg:block lg:w-64 bg-white border-l border-[#FDEBED] p-4 shrink-0 overflow-y-auto">
           <div className="flex items-center justify-between pb-2 mb-3 border-b border-[#FDEBED]">
             <span className="inline-flex items-center gap-1.5 text-xs font-extrabold text-[#162A4C]">
               <Layers className="w-4 h-4 text-[#D98395]" />
@@ -1240,6 +1245,341 @@ export default function FullscreenStudioPage({ initialPresetId }: FullscreenStud
           )}
         </aside>
       </div>
+
+      {/* iPhone / Mobile Collapsible Bottom Sheet (Canva Mobile Pattern!) */}
+      {mobileSheet && (
+        <div className="lg:hidden bg-white border-t border-[#FDEBED] shadow-2xl rounded-t-3xl px-4 pt-3 pb-2 max-h-[38dvh] overflow-y-auto shrink-0 z-30">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-extrabold text-[#162A4C] uppercase tracking-wider">
+              {mobileSheet === 'elemen' && 'Tempel Elemen'}
+              {mobileSheet === 'template' && 'Template & Draft'}
+              {mobileSheet === 'latar' && 'Latar Ruangan'}
+              {mobileSheet === 'atur' && 'Atur Elemen Terpilih'}
+              {mobileSheet === 'layer' && `Daftar Layer (${elements.length})`}
+            </span>
+            <button
+              type="button"
+              onClick={() => setMobileSheet(null)}
+              className="w-7 h-7 rounded-full bg-[#FFF5F7] text-[#162A4C] flex items-center justify-center"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          {mobileSheet === 'elemen' && (
+            <div className="space-y-3 pb-2">
+              <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
+                {ELEMENT_CATEGORIES.map((cat) => (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => setActiveCategory(cat)}
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-bold shrink-0 ${
+                      activeCategory === cat
+                        ? 'bg-[#162A4C] text-white'
+                        : 'bg-[#FFF5F7] text-[#162A4C]/75'
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+              {activeCategory === 'Properti' && (
+                <button
+                  type="button"
+                  onClick={() => pngPropInputRef.current?.click()}
+                  className="w-full py-2.5 px-3 rounded-2xl border-2 border-dashed border-[#EFAAB6] bg-[#FFF9FA] text-[#162A4C] text-xs font-extrabold flex items-center justify-center gap-1.5"
+                >
+                  <Upload className="w-3.5 h-3.5 text-[#D98395]" />
+                  + Upload Karakter PNG (Tanpa Background)
+                </button>
+              )}
+              <div className="grid grid-cols-4 gap-2">
+                {visibleStickers
+                  .filter((s) => s.category === activeCategory)
+                  .map((def) => (
+                    <button
+                      key={def.type}
+                      type="button"
+                      onClick={() => {
+                        addSticker(def)
+                        setMobileSheet(null)
+                      }}
+                      className="p-2 rounded-2xl bg-[#FFF9FA] border border-[#F2D5DC]/70 flex flex-col items-center gap-1 active:scale-95 transition-transform"
+                    >
+                      <div className="w-10 h-10 flex items-center justify-center">
+                        <StickerSVG
+                          element={{
+                            id: `mprev-${def.type}`,
+                            type: def.type,
+                            x: 0,
+                            y: 0,
+                            width: 100,
+                            rotation: 0,
+                            color: def.defaultColor,
+                            secondaryColor: def.defaultSecondary ?? def.defaultColor,
+                            text: def.defaultText,
+                          }}
+                        />
+                      </div>
+                      <span className="text-[10px] font-bold text-[#162A4C] text-center leading-tight line-clamp-2">
+                        {getStickerLabel(def)}
+                      </span>
+                    </button>
+                  ))}
+              </div>
+            </div>
+          )}
+
+          {mobileSheet === 'template' && (
+            <div className="space-y-2 pb-2">
+              {visiblePresets.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => {
+                    loadPreset(p.id)
+                    setMobileSheet(null)
+                  }}
+                  className="w-full text-left px-3.5 py-2.5 rounded-2xl bg-[#FFF9FA] border border-[#F2D5DC] text-xs font-extrabold text-[#162A4C]"
+                >
+                  {p.name}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {mobileSheet === 'latar' && (
+            <div className="space-y-2.5 pb-2">
+              <button
+                type="button"
+                onClick={() => bgFileInputRef.current?.click()}
+                className="w-full py-2.5 px-3 rounded-2xl border-2 border-dashed border-[#EFAAB6] bg-[#FFF9FA] text-[#162A4C] text-xs font-extrabold flex items-center justify-center gap-2"
+              >
+                <Upload className="w-3.5 h-3.5 text-[#D98395]" />
+                Upload Foto Ruanganmu
+              </button>
+              <div className="grid grid-cols-3 gap-2">
+                {visibleBgs.map((bg) => (
+                  <button
+                    key={bg.id}
+                    type="button"
+                    onClick={() => {
+                      setCustomBgUrl(null)
+                      setBackgroundId(bg.id)
+                      setMobileSheet(null)
+                    }}
+                    className={`p-1.5 rounded-xl border-2 text-left ${
+                      !customBgUrl && backgroundId === bg.id
+                        ? 'border-[#162A4C] bg-white'
+                        : 'border-transparent bg-[#FFF9FA]'
+                    }`}
+                  >
+                    <div className="h-8 rounded-lg mb-1 overflow-hidden flex flex-col">
+                      <div
+                        className="flex-1"
+                        style={{ background: `linear-gradient(180deg, ${bg.wallTop}, ${bg.wallBottom})` }}
+                      />
+                      <div className="h-2" style={{ backgroundColor: bg.floor }} />
+                    </div>
+                    <span className="block text-[10px] font-bold text-[#162A4C] truncate">
+                      {bg.label}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {mobileSheet === 'layer' && (
+            <div className="space-y-1.5 pb-2">
+              {[...elements].reverse().map((el) => (
+                <button
+                  key={el.id}
+                  type="button"
+                  onClick={() => {
+                    setSelectedId(el.id)
+                    setMobileSheet('atur')
+                  }}
+                  className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold flex items-center justify-between ${
+                    el.id === selectedId ? 'bg-[#162A4C] text-white' : 'bg-[#FFF9FA] text-[#162A4C]'
+                  }`}
+                >
+                  <span>{getElementDisplayName(el)}</span>
+                  <span
+                    className="w-3.5 h-3.5 rounded-full border border-white/60"
+                    style={{ backgroundColor: el.color }}
+                  />
+                </button>
+              ))}
+            </div>
+          )}
+
+          {mobileSheet === 'atur' && (
+            <div className="space-y-3 pb-2">
+              {!selectedEl ? (
+                <p className="text-xs text-[#162A4C]/55">
+                  Ketuk salah satu elemen di kanvas terlebih dahulu untuk mengaturnya.
+                </p>
+              ) : (
+                <>
+                  <div className="grid grid-cols-5 gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => shiftLayer('up')}
+                      className="p-2.5 rounded-xl bg-[#FFF5F7] text-[#162A4C] flex items-center justify-center"
+                    >
+                      <ArrowUp className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => shiftLayer('down')}
+                      className="p-2.5 rounded-xl bg-[#FFF5F7] text-[#162A4C] flex items-center justify-center"
+                    >
+                      <ArrowDown className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => updateSelected({ flipX: !selectedEl.flipX })}
+                      className="p-2.5 rounded-xl bg-[#FFF5F7] text-[#162A4C] flex items-center justify-center"
+                    >
+                      <FlipHorizontal2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={duplicateSelected}
+                      className="p-2.5 rounded-xl bg-[#FFF5F7] text-[#162A4C] flex items-center justify-center"
+                    >
+                      <Copy className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={deleteSelected}
+                      className="p-2.5 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {selectedDef?.supportsBanner && (
+                    <button
+                      type="button"
+                      onClick={() => bannerInputRef.current?.click()}
+                      className="w-full py-2 px-3 rounded-xl bg-[#FDEBED] text-[#162A4C] text-xs font-extrabold flex items-center justify-center gap-1.5"
+                    >
+                      <Upload className="w-3.5 h-3.5 text-[#D98395]" />
+                      {selectedEl.customImageUrl ? 'Ganti Gambar Banner' : 'Masukan Gambar Banner'}
+                    </button>
+                  )}
+
+                  {(selectedEl.type === 'custom-text' ||
+                    selectedEl.type === 'marquee-number' ||
+                    selectedEl.type === 'neon-sign') && (
+                    <input
+                      type="text"
+                      maxLength={selectedEl.type === 'marquee-number' ? 3 : 24}
+                      value={selectedEl.text ?? ''}
+                      onChange={(e) => updateSelected({ text: e.target.value })}
+                      className="w-full rounded-xl border border-[#EFAAB6]/60 bg-[#FFF9FA] px-3 py-2 text-sm font-bold text-[#162A4C]"
+                    />
+                  )}
+
+                  {selectedEl.type !== 'custom-png' && (
+                    <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
+                      {STUDIO_PALETTE.map((swatch) => (
+                        <button
+                          key={`m-${swatch.hex}`}
+                          type="button"
+                          onClick={() => {
+                            if (
+                              (selectedEl.type === 'balloon-cluster' ||
+                                selectedEl.type === 'garland-arch') &&
+                              selectedEl.secondaryColor === selectedEl.color
+                            ) {
+                              updateSelected({ color: swatch.hex, secondaryColor: swatch.hex })
+                            } else {
+                              updateSelected({ color: swatch.hex })
+                            }
+                          }}
+                          className={`w-7 h-7 rounded-full border shrink-0 ${
+                            selectedEl.color === swatch.hex
+                              ? 'ring-2 ring-[#162A4C] border-white'
+                              : 'border-black/10'
+                          }`}
+                          style={{ backgroundColor: swatch.hex }}
+                        />
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <span className="block text-[10px] font-bold text-[#162A4C] mb-1">
+                        Ukuran ({Math.round(selectedEl.width)}%)
+                      </span>
+                      <input
+                        type="range"
+                        min={6}
+                        max={68}
+                        value={selectedEl.width}
+                        onChange={(e) => updateSelected({ width: Number(e.target.value) }, false)}
+                        onTouchEnd={() => commitElements(elements)}
+                        className="w-full"
+                      />
+                    </div>
+                    <div>
+                      <span className="block text-[10px] font-bold text-[#162A4C] mb-1">
+                        Putar ({selectedEl.rotation}°)
+                      </span>
+                      <input
+                        type="range"
+                        min={-180}
+                        max={180}
+                        value={selectedEl.rotation}
+                        onChange={(e) => updateSelected({ rotation: Number(e.target.value) }, false)}
+                        onTouchEnd={() => commitElements(elements)}
+                        className="w-full"
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* iPhone / Mobile Bottom Dock Bar */}
+      <nav className="lg:hidden bg-white border-t border-[#FDEBED] px-2 pt-1.5 pb-safe grid grid-cols-5 gap-1 shrink-0 z-30">
+        {[
+          { id: 'elemen' as const, label: 'Elemen', icon: Plus },
+          { id: 'template' as const, label: 'Template', icon: LayoutTemplate },
+          { id: 'latar' as const, label: 'Latar', icon: ImageIcon },
+          { id: 'atur' as const, label: 'Atur', icon: Sparkles },
+          { id: 'layer' as const, label: 'Layer', icon: Layers },
+        ].map((tab) => {
+          const Icon = tab.icon
+          const active = mobileSheet === tab.id
+          const highlightAtur = tab.id === 'atur' && Boolean(selectedEl) && !active
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setMobileSheet(active ? null : tab.id)}
+              className={`py-2 rounded-2xl flex flex-col items-center gap-0.5 text-[10px] font-bold transition-colors ${
+                active
+                  ? 'bg-[#162A4C] text-white'
+                  : highlightAtur
+                    ? 'bg-[#FDEBED] text-[#162A4C]'
+                    : 'text-[#162A4C]/70'
+              }`}
+            >
+              <Icon className="w-4 h-4" />
+              {tab.label}
+            </button>
+          )
+        })}
+      </nav>
 
       {/* Studio 2D Content Settings Drawer */}
       {studioSettingsOpen && (

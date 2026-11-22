@@ -1,4 +1,4 @@
-import { useRef, useMemo, useState } from 'react'
+import { useRef, useMemo, useState, useEffect } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { Float, Environment, Lightformer } from '@react-three/drei'
 import * as THREE from 'three'
@@ -33,9 +33,9 @@ export const BALLOON_MOODS: BalloonMood[] = [
   },
 ]
 
-function createPlushBalloonGeo(): THREE.LatheGeometry {
+function createPlushBalloonGeo(isMobile: boolean): THREE.LatheGeometry {
   const pts: THREE.Vector2[] = []
-  const steps = 22
+  const steps = isMobile ? 16 : 22
   for (let i = 0; i <= steps; i++) {
     const t = i / steps
     const a = t * Math.PI
@@ -43,7 +43,7 @@ function createPlushBalloonGeo(): THREE.LatheGeometry {
     const y = -Math.cos(a) * 1.08
     pts.push(new THREE.Vector2(r, y))
   }
-  return new THREE.LatheGeometry(pts, 28)
+  return new THREE.LatheGeometry(pts, isMobile ? 20 : 28)
 }
 
 interface FloatingBalloonProps {
@@ -54,7 +54,8 @@ interface FloatingBalloonProps {
   finish: 'satin' | 'chrome' | 'pearl'
   speed: number
   rotation?: [number, number, number]
-  onPop: (color: string) => void
+  onPop?: (color: string) => void
+  interactive: boolean
 }
 
 function FloatingBalloon({
@@ -66,6 +67,7 @@ function FloatingBalloon({
   speed,
   rotation = [0, 0, 0],
   onPop,
+  interactive,
 }: FloatingBalloonProps) {
   const ref = useRef<THREE.Group>(null)
   const [hovered, setHovered] = useState(false)
@@ -92,32 +94,44 @@ function FloatingBalloon({
   }, [color, finish])
 
   return (
-    <Float speed={speed} rotationIntensity={0.14} floatIntensity={0.32}>
+    <Float speed={speed} rotationIntensity={0.12} floatIntensity={0.28}>
       <group
         ref={ref}
         position={position}
         rotation={rotation}
         scale={scale}
-        onPointerOver={(e) => {
-          e.stopPropagation()
-          setHovered(true)
-          document.body.style.cursor = 'pointer'
-        }}
-        onPointerOut={() => {
-          setHovered(false)
-          document.body.style.cursor = 'auto'
-        }}
-        onClick={(e) => {
-          e.stopPropagation()
-          popAnim.current = 1
-          onPop(color)
-        }}
+        onPointerOver={
+          interactive
+            ? (e) => {
+                e.stopPropagation()
+                setHovered(true)
+                document.body.style.cursor = 'pointer'
+              }
+            : undefined
+        }
+        onPointerOut={
+          interactive
+            ? () => {
+                setHovered(false)
+                document.body.style.cursor = 'auto'
+              }
+            : undefined
+        }
+        onClick={
+          interactive
+            ? (e) => {
+                e.stopPropagation()
+                popAnim.current = 1
+                onPop?.(color)
+              }
+            : undefined
+        }
       >
         <mesh geometry={geometry}>
           <meshPhysicalMaterial {...matProps} />
         </mesh>
         <mesh position={[0, -1.1, 0]} rotation={[Math.PI, 0, 0]}>
-          <coneGeometry args={[0.095, 0.13, 14]} />
+          <coneGeometry args={[0.095, 0.13, 12]} />
           <meshPhysicalMaterial {...matProps} />
         </mesh>
       </group>
@@ -127,18 +141,25 @@ function FloatingBalloon({
 
 function SeamlessScene({
   mood,
+  isMobile,
   onPop,
 }: {
   mood: BalloonMood
+  isMobile: boolean
   onPop: (color: string) => void
 }) {
   const rootRef = useRef<THREE.Group>(null)
-  const balloonGeo = useMemo(() => createPlushBalloonGeo(), [])
+  const balloonGeo = useMemo(() => createPlushBalloonGeo(isMobile), [isMobile])
   const [c1, c2, c3, c4, c5] = mood.swatches
 
   useFrame((state, delta) => {
     if (!rootRef.current) return
     const dt = Math.min(delta, 0.05)
+    if (isMobile) {
+      // Gentle autonomous breathing sway on iPhone (zero touch/pointer overhead)
+      rootRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.45) * 0.08
+      return
+    }
     rootRef.current.rotation.y = THREE.MathUtils.lerp(
       rootRef.current.rotation.y,
       state.pointer.x * 0.12,
@@ -151,12 +172,64 @@ function SeamlessScene({
     )
   })
 
+  if (isMobile) {
+    // Precision iPhone portrait composition — frames the upper area cleanly with zero overlap!
+    return (
+      <group ref={rootRef}>
+        <FloatingBalloon
+          geometry={balloonGeo}
+          position={[1.35, 1.85, 0.1]}
+          scale={0.86}
+          color={c1}
+          finish="satin"
+          speed={1.25}
+          rotation={[0.04, 0, -0.08]}
+          interactive={false}
+        />
+        <FloatingBalloon
+          geometry={balloonGeo}
+          position={[-1.45, 2.25, -0.6]}
+          scale={0.72}
+          color={c2}
+          finish="satin"
+          speed={1.45}
+          rotation={[-0.03, 0.1, 0.1]}
+          interactive={false}
+        />
+        <FloatingBalloon
+          geometry={balloonGeo}
+          position={[0.05, 2.75, -1.35]}
+          scale={0.62}
+          color={c3}
+          finish="pearl"
+          speed={1.15}
+          interactive={false}
+        />
+        <FloatingBalloon
+          geometry={balloonGeo}
+          position={[1.75, -1.65, -0.8]}
+          scale={0.58}
+          color={c5}
+          finish="chrome"
+          speed={1.55}
+          interactive={false}
+        />
+        <FloatingBalloon
+          geometry={balloonGeo}
+          position={[-1.55, -1.85, -1.1]}
+          scale={0.52}
+          color={c4}
+          finish="satin"
+          speed={1.35}
+          interactive={false}
+        />
+      </group>
+    )
+  }
+
   return (
     <group ref={rootRef}>
-      {/*
-        Carefully spaced non-overlapping hero balloons (every pair has distance > r1 + r2 + 0.55)
-        so zero clipping/penetration ever occurs while floating!
-      */}
+      {/* Desktop non-overlapping hero balloons */}
       <FloatingBalloon
         geometry={balloonGeo}
         position={[2.15, 0.35, 0.3]}
@@ -166,6 +239,7 @@ function SeamlessScene({
         speed={1.3}
         rotation={[0.04, 0, -0.08]}
         onPop={onPop}
+        interactive={true}
       />
       <FloatingBalloon
         geometry={balloonGeo}
@@ -176,6 +250,7 @@ function SeamlessScene({
         speed={1.55}
         rotation={[-0.04, 0.18, 0.1]}
         onPop={onPop}
+        interactive={true}
       />
       <FloatingBalloon
         geometry={balloonGeo}
@@ -186,6 +261,7 @@ function SeamlessScene({
         speed={1.2}
         rotation={[0.04, 0, -0.12]}
         onPop={onPop}
+        interactive={true}
       />
       <FloatingBalloon
         geometry={balloonGeo}
@@ -196,6 +272,7 @@ function SeamlessScene({
         speed={1.75}
         rotation={[0, 0, 0.12]}
         onPop={onPop}
+        interactive={true}
       />
       <FloatingBalloon
         geometry={balloonGeo}
@@ -206,9 +283,10 @@ function SeamlessScene({
         speed={1.65}
         rotation={[0.05, 0, -0.1]}
         onPop={onPop}
+        interactive={true}
       />
 
-      {/* Ambient distant background balloons (left side — kept soft & far behind) */}
+      {/* Ambient distant left-side balloons */}
       <FloatingBalloon
         geometry={balloonGeo}
         position={[-4.85, 1.75, -2.4]}
@@ -218,6 +296,7 @@ function SeamlessScene({
         speed={1.15}
         rotation={[0, 0, 0.14]}
         onPop={onPop}
+        interactive={true}
       />
       <FloatingBalloon
         geometry={balloonGeo}
@@ -228,9 +307,9 @@ function SeamlessScene({
         speed={1.45}
         rotation={[0, 0, -0.1]}
         onPop={onPop}
+        interactive={true}
       />
 
-      {/* Delicate floating gold ring cleanly behind the right cluster */}
       <Float speed={1.0} rotationIntensity={0.08} floatIntensity={0.2}>
         <mesh position={[3.0, 0.15, -2.1]} rotation={[0.08, -0.18, 0]}>
           <torusGeometry args={[2.6, 0.024, 12, 72]} />
@@ -247,6 +326,17 @@ interface Hero3DSceneProps {
 }
 
 export default function Hero3DScene({ mood, onBalloonPop }: Hero3DSceneProps) {
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth < 768 : false
+  )
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)')
+    const onChange = () => setIsMobile(mq.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
+
   const handlePop = (color: string) => {
     onBalloonPop?.()
     confetti({
@@ -261,23 +351,23 @@ export default function Hero3DScene({ mood, onBalloonPop }: Hero3DSceneProps) {
 
   return (
     <Canvas
-      dpr={[1, 1.5]}
-      camera={{ position: [0, 0, 8.6], fov: 36 }}
-      gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
-      style={{ width: '100%', height: '100%' }}
+      dpr={isMobile ? 1 : [1, 1.5]}
+      camera={{ position: [0, 0, isMobile ? 9.2 : 8.6], fov: isMobile ? 42 : 36 }}
+      gl={{ antialias: !isMobile, alpha: true, powerPreference: 'high-performance' }}
+      style={{ width: '100%', height: '100%', pointerEvents: isMobile ? 'none' : 'auto' }}
     >
       <ambientLight intensity={0.96} />
       <directionalLight position={[6, 8, 6]} intensity={1.25} color="#FFF9F7" />
       <directionalLight position={[-6, 2, 5]} intensity={0.7} color="#FDEBED" />
-      <pointLight position={[2, -4, 4]} intensity={0.48} color="#F3B6C1" />
+      {!isMobile && <pointLight position={[2, -4, 4]} intensity={0.48} color="#F3B6C1" />}
 
-      <Environment resolution={128}>
+      <Environment resolution={isMobile ? 64 : 128}>
         <Lightformer form="ring" intensity={2.1} position={[0, 6, 4]} scale={10} color="#FFFFFF" />
         <Lightformer form="circle" intensity={1.8} position={[-6, 2, 4]} scale={6} color="#FDEBED" />
         <Lightformer form="rect" intensity={1.5} position={[6, 3, 2]} scale={[6, 8, 1]} color="#FFF4E6" />
       </Environment>
 
-      <SeamlessScene mood={mood} onPop={handlePop} />
+      <SeamlessScene mood={mood} isMobile={isMobile} onPop={handlePop} />
     </Canvas>
   )
 }
