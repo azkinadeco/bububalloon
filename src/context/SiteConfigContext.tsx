@@ -4,6 +4,7 @@ import {
   DEFAULT_GITHUB_REPO,
   verifyGithubAdminToken,
   publishSiteConfigToGithub,
+  fetchLiveSiteConfig,
 } from '../lib/githubSync'
 
 export type DesignCategory = 'Semua' | 'Ulang Tahun' | 'Sweet 17' | 'Kids & Baby' | 'Intimate & Bridal'
@@ -195,6 +196,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
 
 export const SITE_CONFIG_STORAGE_KEY = 'bubu-balloon-site-config-v3'
 const ADMIN_AUTH_STORAGE_KEY = 'bubu-balloon-github-admin-v1'
+const UNSAVED_FLAG_STORAGE_KEY = 'bubu-balloon-unsaved-v1'
 
 interface AdminSession {
   token: string
@@ -211,9 +213,12 @@ interface SiteConfigContextValue {
   isAdmin: boolean
   adminUser: string | null
   adminRepo: string
+  hasUnsavedChanges: boolean
+  isSyncingRemote: boolean
   loginAdmin: (token: string, repo?: string) => Promise<{ ok: boolean; error?: string }>
   logoutAdmin: () => void
   publishToGithub: (overrideConfig?: SiteConfig) => Promise<{ ok: boolean; commitUrl?: string; error?: string }>
+  syncFromGithub: () => Promise<boolean>
   isPublishing: boolean
 }
 
@@ -255,21 +260,66 @@ export function SiteConfigProvider({ children }: { children: React.ReactNode }) 
   const [config, setConfig] = useState<SiteConfig>(loadConfigFromStorage)
   const [adminSession, setAdminSession] = useState<AdminSession | null>(loadAdminSession)
   const [isPublishing, setIsPublishing] = useState(false)
+  const [isSyncingRemote, setIsSyncingRemote] = useState(false)
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(UNSAVED_FLAG_STORAGE_KEY) === '1'
+    } catch {
+      return false
+    }
+  })
 
-  // Fetch published public/site-config.json on mount for visitors (when no local admin draft overrides)
+  const markUnsaved = (dirty: boolean) => {
+    setHasUnsavedChanges(dirty)
+    try {
+      if (dirty) {
+        localStorage.setItem(UNSAVED_FLAG_STORAGE_KEY, '1')
+      } else {
+        localStorage.removeItem(UNSAVED_FLAG_STORAGE_KEY)
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  const syncFromGithub = async (): Promise<boolean> => {
+    setIsSyncingRemote(true)
+    try {
+      const repo = adminSession?.repo ?? DEFAULT_GITHUB_REPO
+      const data = await fetchLiveSiteConfig(repo)
+      if (data && data.brand) {
+        setConfig(mergeConfig(data))
+        markUnsaved(false)
+        return true
+      }
+      return false
+    } finally {
+      setIsSyncingRemote(false)
+    }
+  }
+
+  // Always fetch latest published config from GitHub Raw on mount (so HP & all visitors
+  // immediately see changes published from PC!), unless THIS browser has unpublished admin edits.
   useEffect(() => {
-    const hasLocalOverride = Boolean(localStorage.getItem(SITE_CONFIG_STORAGE_KEY))
-    if (hasLocalOverride && adminSession) return
+    const dirtyOnThisDevice = (() => {
+      try {
+        return localStorage.getItem(UNSAVED_FLAG_STORAGE_KEY) === '1'
+      } catch {
+        return false
+      }
+    })()
+    if (dirtyOnThisDevice && adminSession) return
 
-    fetch(`/site-config.json?v=${Date.now()}`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data: Partial<SiteConfig> | null) => {
+    const repo = adminSession?.repo ?? DEFAULT_GITHUB_REPO
+    fetchLiveSiteConfig(repo)
+      .then((data) => {
         if (data && data.brand) {
           setConfig(mergeConfig(data))
+          markUnsaved(false)
         }
       })
       .catch(() => {
-        // Fallback silently to DEFAULT_SITE_CONFIG
+        // Fallback silently to cached/default config
       })
   }, [adminSession])
 
@@ -288,6 +338,8 @@ export function SiteConfigProvider({ children }: { children: React.ReactNode }) 
         setConfig(loadConfigFromStorage())
       } else if (e.key === ADMIN_AUTH_STORAGE_KEY) {
         setAdminSession(loadAdminSession())
+      } else if (e.key === UNSAVED_FLAG_STORAGE_KEY) {
+        setHasUnsavedChanges(e.newValue === '1')
       }
     }
     window.addEventListener('storage', onStorage)
@@ -296,10 +348,12 @@ export function SiteConfigProvider({ children }: { children: React.ReactNode }) 
 
   const updateConfig = (updater: (prev: SiteConfig) => SiteConfig) => {
     setConfig((prev) => updater(prev))
+    markUnsaved(true)
   }
 
   const resetConfig = () => {
     setConfig(DEFAULT_SITE_CONFIG)
+    markUnsaved(true)
     try {
       localStorage.removeItem(SITE_CONFIG_STORAGE_KEY)
     } catch {
@@ -340,11 +394,15 @@ export function SiteConfigProvider({ children }: { children: React.ReactNode }) 
     }
     setIsPublishing(true)
     try {
-      return await publishSiteConfigToGithub(
+      const res = await publishSiteConfigToGithub(
         adminSession.token,
         overrideConfig ?? config,
         adminSession.repo
       )
+      if (res.ok) {
+        markUnsaved(false)
+      }
+      return res
     } finally {
       setIsPublishing(false)
     }
@@ -373,9 +431,12 @@ export function SiteConfigProvider({ children }: { children: React.ReactNode }) 
         isAdmin: Boolean(adminSession),
         adminUser: adminSession?.username ?? null,
         adminRepo: adminSession?.repo ?? DEFAULT_GITHUB_REPO,
+        hasUnsavedChanges,
+        isSyncingRemote,
         loginAdmin,
         logoutAdmin,
         publishToGithub,
+        syncFromGithub,
         isPublishing,
       }}
     >

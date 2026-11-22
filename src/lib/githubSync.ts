@@ -4,6 +4,37 @@ export const DEFAULT_GITHUB_REPO = 'azkinadeco/bububalloon'
 export const DEFAULT_GITHUB_BRANCH = 'main'
 const CONFIG_FILE_PATH = 'public/site-config.json'
 
+/**
+ * Fetch the latest published site-config.json directly from GitHub Raw
+ * (updates within seconds after Admin publishes from PC, even before hosting redeploys!),
+ * with fallback to local /site-config.json.
+ */
+export async function fetchLiveSiteConfig(
+  repo: string = DEFAULT_GITHUB_REPO,
+  branch: string = DEFAULT_GITHUB_BRANCH
+): Promise<Partial<SiteConfig> | null> {
+  const cleanRepo = repo.trim().replace(/^https?:\/\/github\.com\//, '').replace(/\.git$/, '')
+  const ts = Date.now()
+  const urls = [
+    `https://raw.githubusercontent.com/${cleanRepo}/${encodeURIComponent(branch)}/${CONFIG_FILE_PATH}?t=${ts}`,
+    `/site-config.json?t=${ts}`,
+  ]
+
+  for (const url of urls) {
+    try {
+      const res = await fetch(url, { cache: 'no-store' })
+      if (!res.ok) continue
+      const data = (await res.json()) as Partial<SiteConfig>
+      if (data && data.brand) {
+        return data
+      }
+    } catch {
+      // Try next fallback URL
+    }
+  }
+  return null
+}
+
 function utf8ToBase64(str: string): string {
   const bytes = new TextEncoder().encode(str)
   let binary = ''

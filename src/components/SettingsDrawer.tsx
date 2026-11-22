@@ -13,6 +13,7 @@ import {
   CloudUpload,
   Loader2,
   ShieldCheck,
+  RefreshCw,
 } from 'lucide-react'
 import { useSiteConfig, DesignModel, SiteConfig } from '../context/SiteConfigContext'
 import { DEFAULT_GITHUB_REPO } from '../lib/githubSync'
@@ -32,9 +33,12 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
     isAdmin,
     adminUser,
     adminRepo,
+    hasUnsavedChanges,
+    isSyncingRemote,
     loginAdmin,
     logoutAdmin,
     publishToGithub,
+    syncFromGithub,
     isPublishing,
   } = useSiteConfig()
 
@@ -72,12 +76,26 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
     setPublishStatus(null)
     const res = await publishToGithub()
     if (res.ok) {
-      setPublishStatus({ ok: true, msg: 'Berhasil publish ke GitHub! Live dalam ~1 menit 🎉' })
+      setPublishStatus({
+        ok: true,
+        msg: 'Berhasil publish ke GitHub! Refresh HP-mu sekarang, perubahan langsung muncul 🎉',
+      })
     } else {
       setPublishStatus({ ok: false, msg: res.error || 'Gagal publish ke GitHub.' })
     }
   }
 
+  const handleSyncPull = async () => {
+    setPublishStatus(null)
+    const ok = await syncFromGithub()
+    setPublishStatus(
+      ok
+        ? { ok: true, msg: 'Data terbaru dari GitHub berhasil disinkronkan ke perangkat ini!' }
+        : { ok: false, msg: 'Gagal menarik data dari GitHub. Cek koneksi internetmu.' }
+    )
+  }
+
+  // Auto-compress uploaded Paket / Portofolio photos (max 1080px, JPEG 0.80) so GitHub sync & HP loading stay super fast!
   const handleImageFile = (
     e: React.ChangeEvent<HTMLInputElement>,
     onDataUrl: (url: string) => void
@@ -86,10 +104,30 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
     if (!file) return
     const reader = new FileReader()
     reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        onDataUrl(reader.result)
+      const rawUrl = typeof reader.result === 'string' ? reader.result : ''
+      if (!rawUrl) return
+      const img = new Image()
+      img.onload = () => {
+        const maxDim = 1080
+        const ratio = Math.min(1, maxDim / Math.max(img.width, img.height))
+        const canvas = document.createElement('canvas')
+        canvas.width = Math.max(1, Math.round(img.width * ratio))
+        canvas.height = Math.max(1, Math.round(img.height * ratio))
+        const ctx = canvas.getContext('2d')
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+          const compressed = canvas.toDataURL('image/jpeg', 0.8)
+          onDataUrl(compressed)
+        } else {
+          onDataUrl(rawUrl)
+        }
+        flashSaved('Foto dikompres & disimpan')
+      }
+      img.onerror = () => {
+        onDataUrl(rawUrl)
         flashSaved()
       }
+      img.src = rawUrl
     }
     reader.readAsDataURL(file)
   }
@@ -214,14 +252,18 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
           </form>
         ) : (
           <>
-            {/* Publish to GitHub Banner */}
+            {/* Publish & Sync GitHub Banner */}
             <div className="px-4 py-3 bg-[#FFF5F7] border-b border-[#FDEBED] space-y-2">
               <div className="flex items-center justify-between gap-2">
                 <button
                   type="button"
                   onClick={handlePublish}
                   disabled={isPublishing}
-                  className="flex-1 py-2.5 px-4 rounded-full bg-[#162A4C] hover:bg-[#243E6B] disabled:opacity-60 text-white text-xs font-extrabold inline-flex items-center justify-center gap-2 shadow-sm cursor-pointer transition-colors"
+                  className={`flex-1 py-2.5 px-4 rounded-full text-white text-xs font-extrabold inline-flex items-center justify-center gap-2 shadow-sm cursor-pointer transition-all disabled:opacity-60 ${
+                    hasUnsavedChanges
+                      ? 'bg-[#D98395] hover:bg-[#c56c80] ring-2 ring-[#EFAAB6]'
+                      : 'bg-[#162A4C] hover:bg-[#243E6B]'
+                  }`}
                 >
                   {isPublishing ? (
                     <>
@@ -230,10 +272,19 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
                     </>
                   ) : (
                     <>
-                      <CloudUpload className="w-4 h-4 text-[#F2B3BD]" />
-                      Publish Perubahan ke GitHub
+                      <CloudUpload className="w-4 h-4 text-white" />
+                      {hasUnsavedChanges ? 'Publish ke GitHub (Wajib agar tampil di HP!)' : 'Publish Perubahan ke GitHub'}
                     </>
                   )}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSyncPull}
+                  disabled={isSyncingRemote}
+                  title="Tarik data terbaru dari GitHub"
+                  className="p-2.5 rounded-full bg-white border border-[#F2D5DC] text-[#162A4C] hover:bg-[#FDEBED] cursor-pointer disabled:opacity-50"
+                >
+                  <RefreshCw className={`w-4 h-4 ${isSyncingRemote ? 'animate-spin' : ''}`} />
                 </button>
                 <button
                   type="button"
@@ -244,6 +295,11 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
                   <LogOut className="w-4 h-4" />
                 </button>
               </div>
+              {hasUnsavedChanges && !publishStatus && (
+                <p className="text-[11px] font-bold px-3 py-1.5 rounded-xl bg-amber-50 text-amber-800 border border-amber-200">
+                  ⚠️ Editan baru tersimpan di perangkat ini. Klik <strong>Publish ke GitHub</strong> di atas supaya langsung berubah di HP!
+                </p>
+              )}
               {publishStatus && (
                 <p
                   className={`text-[11px] font-bold px-3 py-1.5 rounded-xl ${
@@ -704,10 +760,16 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
               </div>
               <button
                 type="button"
-                onClick={onClose}
-                className="px-5 py-2 rounded-full bg-[#162A4C] text-white text-xs font-bold hover:bg-[#243E6B] cursor-pointer"
+                onClick={async () => {
+                  if (hasUnsavedChanges && !isPublishing) {
+                    await handlePublish()
+                  }
+                  onClose()
+                }}
+                disabled={isPublishing}
+                className="px-5 py-2 rounded-full bg-[#162A4C] text-white text-xs font-bold hover:bg-[#243E6B] cursor-pointer disabled:opacity-60"
               >
-                Selesai
+                {isPublishing ? 'Menyimpan...' : hasUnsavedChanges ? 'Publish & Selesai' : 'Selesai'}
               </button>
             </div>
           </>

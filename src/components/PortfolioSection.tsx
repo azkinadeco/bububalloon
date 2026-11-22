@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { MapPin, X, Instagram } from 'lucide-react'
+import { MapPin, X, Instagram, Sparkles, MessageCircle } from 'lucide-react'
 import { useSiteConfig, PortfolioItem } from '../context/SiteConfigContext'
 import { StudioPresetPreview } from './Studio2D/stickerLibrary'
 
@@ -19,8 +19,9 @@ function PortfolioVisual({ item, className = '' }: { item: PortfolioItem; classN
 }
 
 export function PortfolioSection() {
-  const { config } = useSiteConfig()
+  const { config, buildWhatsAppUrl } = useSiteConfig()
   const [activeItem, setActiveItem] = useState<PortfolioItem | null>(null)
+  const igHandle = config.brand.instagram.replace(/^@/, '').trim() || 'bububalloon.decor'
 
   return (
     <section id="portofolio" className="py-16 sm:py-20 bg-[#FFF5F7]/70">
@@ -37,7 +38,7 @@ export function PortfolioSection() {
           </div>
 
           <a
-            href="https://instagram.com"
+            href={`https://instagram.com/${igHandle}`}
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-[#EFAAB6]/50 text-xs font-bold text-[#162A4C] hover:bg-[#FDEBED] transition-colors self-start sm:self-auto"
@@ -101,11 +102,47 @@ export function PortfolioSection() {
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="p-6">
-              <span className="text-xs font-extrabold uppercase tracking-wider text-[#D98395]">
-                {activeItem.eventType} • {activeItem.location}
-              </span>
-              <h3 className="text-xl font-extrabold text-[#162A4C] mt-1">{activeItem.title}</h3>
+            <div className="p-6 space-y-4">
+              <div>
+                <span className="text-xs font-extrabold uppercase tracking-wider text-[#D98395]">
+                  {activeItem.eventType} • {activeItem.location}
+                </span>
+                <h3 className="text-xl font-extrabold text-[#162A4C] mt-1">{activeItem.title}</h3>
+              </div>
+              {activeItem.palette?.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-bold text-[#162A4C]/55">Palet Warna:</span>
+                  {activeItem.palette.map((c, idx) => (
+                    <span
+                      key={idx}
+                      className="w-5 h-5 rounded-full border border-black/10 shadow-2xs"
+                      style={{ backgroundColor: c }}
+                    />
+                  ))}
+                </div>
+              )}
+              <div className="flex flex-wrap gap-2 pt-1">
+                <a
+                  href={`/?studio=1&preset=${encodeURIComponent(activeItem.presetId || 'bubu-signature')}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex-1 min-w-[140px] py-2.5 px-4 rounded-full bg-[#FDEBED] hover:bg-[#F7D3DA] text-[#162A4C] text-xs font-extrabold inline-flex items-center justify-center gap-1.5 transition-colors"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-[#D98395]" />
+                  Coba di Studio 2D
+                </a>
+                <a
+                  href={buildWhatsAppUrl(
+                    `Halo Bubu Balloon! 🎈 Saya lihat portofolio "${activeItem.title}" (${activeItem.eventType}) di website dan tertarik bikin konsep serupa. Boleh info jadwal kosongnya?`
+                  )}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex-1 min-w-[140px] py-2.5 px-4 rounded-full bg-[#162A4C] hover:bg-[#243E6B] text-white text-xs font-extrabold inline-flex items-center justify-center gap-1.5 transition-colors"
+                >
+                  <MessageCircle className="w-3.5 h-3.5 text-[#F2B3BD]" />
+                  Tanya Konsep Ini
+                </a>
+              </div>
             </div>
           </div>
         </div>

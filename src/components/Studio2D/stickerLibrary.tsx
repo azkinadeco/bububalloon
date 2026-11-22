@@ -139,7 +139,7 @@ export const STICKER_DEFINITIONS: StickerDefinition[] = [
   { type: 'cylinder-fluted-80x40', label: 'Silinder Garis 80×40', category: 'Properti', defaultColor: '#FFFDFC', defaultWidth: 12 },
   { type: 'acrylic-cube-table', label: 'Meja Acrylic Kotak', category: 'Properti', defaultColor: '#E8F4FA', defaultWidth: 12.5 },
   { type: 'gold-cross-table', label: 'Meja Emas Silang', category: 'Properti', defaultColor: '#FFFDFC', defaultSecondary: '#D4AF37', defaultWidth: 15.5 },
-  { type: 'number-balloon', label: 'Balon Angka 0-9', category: 'Properti', defaultColor: '#DFBE8A', defaultWidth: 12, defaultText: '1' },
+  { type: 'number-balloon', label: 'Balon Angka 0-9', category: 'Properti', defaultColor: '#DFBE8A', defaultWidth: 10.5, defaultText: '1' },
   { type: 'marquee-number', label: 'Angka Lampu', category: 'Properti', defaultColor: '#FFFDF8', defaultWidth: 15, defaultText: '17' },
   { type: 'custom-text', label: 'Tulisan Backdrop', category: 'Properti', defaultColor: '#162A4C', defaultWidth: 24, defaultText: 'Happy Birthday' },
   { type: 'neon-sign', label: 'Tulisan LED', category: 'Properti', defaultColor: '#FFD95A', defaultWidth: 22, defaultText: 'Happy Birthday' },
@@ -1006,70 +1006,76 @@ export function StickerSVG({ element }: { element: CanvasElement }): React.React
     }
 
     case 'number-balloon': {
-      // Truly puffy, chubby inflated glossy foil number balloon (Fredoka rounded curves + 3D air-cushion shine!)
+      // Exact 40-inch (~100cm tall × 54cm wide) tall inflated glossy foil number balloon — NOT squat/cebol!
       const digit = (text || '1').slice(0, 1)
-      const bright = shadeHex(color, 44)
+      const bright = shadeHex(color, 46)
       const light = shadeHex(color, 22)
       const dark = shadeHex(color, -26)
       return (
-        <svg viewBox="0 0 130 160" className="w-full h-full drop-shadow-md">
+        <svg viewBox="0 0 100 185" className="w-full h-full drop-shadow-md">
           <defs>
-            <radialGradient id={`foil-${clipId}`} cx="35%" cy="30%" r="72%">
+            <radialGradient id={`foil-${clipId}`} cx="34%" cy="28%" r="72%">
               <stop offset="0%" stopColor={bright} />
-              <stop offset="38%" stopColor={light} />
+              <stop offset="36%" stopColor={light} />
               <stop offset="72%" stopColor={color} />
               <stop offset="100%" stopColor={dark} />
             </radialGradient>
           </defs>
-          {/* Chubby outer foil seam edge */}
-          <text
-            x="65"
-            y="128"
-            textAnchor="middle"
-            fill={dark}
-            stroke={dark}
-            strokeWidth="18"
-            strokeLinejoin="round"
-            strokeLinecap="round"
-            fontSize="126"
-            fontWeight="700"
-            fontFamily="Fredoka, Plus Jakarta Sans, sans-serif"
-          >
-            {digit}
-          </text>
-          {/* Inflated 3D metallic foil cushion body */}
-          <text
-            x="65"
-            y="128"
-            textAnchor="middle"
-            fill={`url(#foil-${clipId})`}
-            stroke={`url(#foil-${clipId})`}
-            strokeWidth="10"
-            strokeLinejoin="round"
-            strokeLinecap="round"
-            fontSize="126"
-            fontWeight="700"
-            fontFamily="Fredoka, Plus Jakarta Sans, sans-serif"
-          >
-            {digit}
-          </text>
-          {/* Soft inner glossy specular air-cushion highlight */}
-          <text
-            x="61"
-            y="123"
-            textAnchor="middle"
-            fill="none"
-            stroke="#FFFFFF"
-            strokeOpacity="0.62"
-            strokeWidth="4.5"
-            strokeDasharray="18 26"
-            strokeLinecap="round"
-            fontSize="126"
-            fontWeight="700"
-            fontFamily="Fredoka, Plus Jakarta Sans, sans-serif"
-          >
-            {digit}
-          </text>
+          {/* Authentic top & bottom foil inflation tabs (kuping balon foil) */}
+          <rect x="44" y="4" width="12" height="9" rx="2.5" fill={dark} opacity="0.72" />
+          <rect x="45.5" y="172" width="9" height="9" rx="2.5" fill={dark} opacity="0.72" />
+
+          <g transform="translate(50 96) scale(0.84, 1.24) translate(-50 -96)">
+            {/* Chubby outer foil seam edge */}
+            <text
+              x="50"
+              y="136"
+              textAnchor="middle"
+              fill={dark}
+              stroke={dark}
+              strokeWidth="16"
+              strokeLinejoin="round"
+              strokeLinecap="round"
+              fontSize="120"
+              fontWeight="700"
+              fontFamily="Fredoka, Plus Jakarta Sans, sans-serif"
+            >
+              {digit}
+            </text>
+            {/* Inflated 3D metallic foil cushion body */}
+            <text
+              x="50"
+              y="136"
+              textAnchor="middle"
+              fill={`url(#foil-${clipId})`}
+              stroke={`url(#foil-${clipId})`}
+              strokeWidth="9"
+              strokeLinejoin="round"
+              strokeLinecap="round"
+              fontSize="120"
+              fontWeight="700"
+              fontFamily="Fredoka, Plus Jakarta Sans, sans-serif"
+            >
+              {digit}
+            </text>
+            {/* Soft inner glossy specular air-cushion highlight */}
+            <text
+              x="47"
+              y="132"
+              textAnchor="middle"
+              fill="none"
+              stroke="#FFFFFF"
+              strokeOpacity="0.64"
+              strokeWidth="4"
+              strokeDasharray="16 24"
+              strokeLinecap="round"
+              fontSize="120"
+              fontWeight="700"
+              fontFamily="Fredoka, Plus Jakarta Sans, sans-serif"
+            >
+              {digit}
+            </text>
+          </g>
         </svg>
       )
     }
