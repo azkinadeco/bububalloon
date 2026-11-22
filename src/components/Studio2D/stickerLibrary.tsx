@@ -103,14 +103,14 @@ export interface RoomBackground {
 }
 
 export const ROOM_BACKGROUNDS: RoomBackground[] = [
-  { id: 'blush', label: 'Studio Parisian', wallTop: '#FFF7F9', wallBottom: '#FCE8EC', floor: '#F1D6DC', accent: '#EFAAB6', imageUrl: '/rooms/blush-studio.jpg', style: 'studio' },
-  { id: 'living-room', label: 'Ruang Tamu', wallTop: '#FAF6F0', wallBottom: '#EDE3D7', floor: '#C9A785', accent: '#D8C7B4', imageUrl: '/rooms/modern-living.jpg', style: 'living' },
-  { id: 'ballroom', label: 'Hotel Ballroom', wallTop: '#F8F2E9', wallBottom: '#E8DBC7', floor: '#C9B8A3', accent: '#DFBE8A', imageUrl: '/rooms/luxury-ballroom.jpg', style: 'ballroom' },
-  { id: 'hotel-lobby', label: 'Lobby Hotel', wallTop: '#F5F0E8', wallBottom: '#E6DCCE', floor: '#D5CBBF', accent: '#DFBE8A', imageUrl: '/rooms/hotel-lobby.jpg', style: 'hotel' },
-  { id: 'cafe', label: 'Cafe Estetik', wallTop: '#F7F1EB', wallBottom: '#E9DDD0', floor: '#B89577', accent: '#C9A98B', imageUrl: '/rooms/warm-cafe.jpg', style: 'cafe' },
-  { id: 'resto', label: 'Resto Dinner', wallTop: '#F4ECE2', wallBottom: '#E3D5C3', floor: '#A68362', accent: '#DFBE8A', imageUrl: '/rooms/resto-dinner.jpg', style: 'resto' },
-  { id: 'stage', label: 'Glam Stage', wallTop: '#FAF3E7', wallBottom: '#EFE2CD', floor: '#D6C2A5', accent: '#FFE49E', imageUrl: '/rooms/glam-stage.jpg', style: 'stage' },
-  { id: 'outdoor', label: 'Garden Terrace', wallTop: '#CBE8FF', wallBottom: '#F2F9FF', floor: '#8EB87F', accent: '#6B995E', imageUrl: '/rooms/garden-terrace.jpg', style: 'outdoor' },
+  { id: 'blush', label: 'Studio Parisian', wallTop: '#FFF7F9', wallBottom: '#FCE8EC', floor: '#F1D6DC', accent: '#EFAAB6', imageUrl: '/rooms-3d/blush-studio.jpg', style: 'studio' },
+  { id: 'living-room', label: 'Ruang Tamu', wallTop: '#FAF6F0', wallBottom: '#EDE3D7', floor: '#C9A785', accent: '#D8C7B4', imageUrl: '/rooms-3d/modern-living.jpg', style: 'living' },
+  { id: 'ballroom', label: 'Hotel Ballroom', wallTop: '#F8F2E9', wallBottom: '#E8DBC7', floor: '#C9B8A3', accent: '#DFBE8A', imageUrl: '/rooms-3d/luxury-ballroom.jpg', style: 'ballroom' },
+  { id: 'hotel-lobby', label: 'Lobby Hotel', wallTop: '#F5F0E8', wallBottom: '#E6DCCE', floor: '#D5CBBF', accent: '#DFBE8A', imageUrl: '/rooms-3d/hotel-lobby.jpg', style: 'hotel' },
+  { id: 'cafe', label: 'Cafe Estetik', wallTop: '#F7F1EB', wallBottom: '#E9DDD0', floor: '#B89577', accent: '#C9A98B', imageUrl: '/rooms-3d/warm-cafe.jpg', style: 'cafe' },
+  { id: 'resto', label: 'Resto Dinner', wallTop: '#F4ECE2', wallBottom: '#E3D5C3', floor: '#A68362', accent: '#DFBE8A', imageUrl: '/rooms-3d/resto-dinner.jpg', style: 'resto' },
+  { id: 'stage', label: 'Glam Stage', wallTop: '#FAF3E7', wallBottom: '#EFE2CD', floor: '#D6C2A5', accent: '#FFE49E', imageUrl: '/rooms-3d/glam-stage.jpg', style: 'stage' },
+  { id: 'outdoor', label: 'Garden Terrace', wallTop: '#CBE8FF', wallBottom: '#F2F9FF', floor: '#8EB87F', accent: '#6B995E', imageUrl: '/rooms-3d/garden-terrace.jpg', style: 'outdoor' },
 ]
 
 /**
