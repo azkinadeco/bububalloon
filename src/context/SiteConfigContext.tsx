@@ -301,25 +301,42 @@ export function SiteConfigProvider({ children }: { children: React.ReactNode }) 
     }
   }
 
-  // Always fetch latest published config from GitHub API on mount (0-second delay so HP & all
-  // visitors immediately see changes published from PC!), unless THIS browser has unpublished edits.
+  // Always fetch latest published config from GitHub API on mount.
+  // For logged-in Admin: preserve any local custom packages not yet published to GitHub
+  // (union merge) and flag unsaved changes so PC packages are NEVER lost!
   useEffect(() => {
-    const dirtyOnThisDevice = (() => {
-      try {
-        return localStorage.getItem(UNSAVED_FLAG_STORAGE_KEY) === '1'
-      } catch {
-        return false
-      }
-    })()
-    if (dirtyOnThisDevice && adminSession) return
-
     const repo = adminSession?.repo ?? DEFAULT_GITHUB_REPO
     fetchLiveSiteConfig(repo, undefined, adminSession?.token)
       .then((data) => {
-        if (data && data.brand) {
-          setConfig(mergeConfig(data))
-          markUnsaved(false)
+        if (!data || !data.brand) return
+        const remoteConfig = mergeConfig(data)
+
+        if (adminSession) {
+          const local = loadConfigFromStorage()
+          const remoteIds = new Set(remoteConfig.models.map((m) => m.id))
+          const localOnlyCustom = local.models.filter(
+            (m) => m.id.startsWith('pkg-') && !remoteIds.has(m.id)
+          )
+          if (localOnlyCustom.length > 0) {
+            setConfig({
+              ...remoteConfig,
+              models: [...localOnlyCustom, ...remoteConfig.models],
+            })
+            markUnsaved(true)
+            return
+          }
+          const dirtyOnThisDevice = (() => {
+            try {
+              return localStorage.getItem(UNSAVED_FLAG_STORAGE_KEY) === '1'
+            } catch {
+              return false
+            }
+          })()
+          if (dirtyOnThisDevice) return
         }
+
+        setConfig(remoteConfig)
+        markUnsaved(false)
       })
       .catch(() => {
         // Fallback silently to cached/default config

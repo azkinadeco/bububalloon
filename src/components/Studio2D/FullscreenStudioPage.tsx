@@ -117,7 +117,7 @@ const STUDIO_COLOR_THEMES: StudioColorTheme[] = [
   },
 ]
 
-const STUDIO_SETTINGS_KEY = 'bubu-studio-2d-settings-v1'
+const STUDIO_SETTINGS_KEY = 'bubu-studio-2d-settings-v2'
 const STUDIO_DRAFTS_KEY = 'bubu-studio-2d-drafts-v1'
 
 interface StudioCustomSettings {
@@ -202,6 +202,7 @@ export default function FullscreenStudioPage({
       : false
   )
   const [layersPopoverOpen, setLayersPopoverOpen] = useState(false)
+  const [textModalOpen, setTextModalOpen] = useState(false)
   const [snapGuide, setSnapGuide] = useState<{ x: boolean; y: boolean }>({ x: false, y: false })
   const [toast, setToast] = useState<string | null>(null)
   const [studioSettingsOpen, setStudioSettingsOpen] = useState(false)
@@ -1724,19 +1725,22 @@ export default function FullscreenStudioPage({
                       </div>
                     )}
 
-                    {/* Smooth Non-Blocking Text Input (commits cleanly on blur!) */}
+                    {/* Rock-solid Text Editor Trigger (Top-pinned modal above iOS keyboard so it NEVER disappears!) */}
                     {(selectedEl.type === 'custom-text' ||
                       selectedEl.type === 'marquee-number' ||
                       selectedEl.type === 'neon-sign') && (
-                      <input
-                        type="text"
-                        maxLength={selectedEl.type === 'marquee-number' ? 3 : 28}
-                        value={selectedEl.text ?? ''}
-                        onChange={(e) => updateSelected({ text: e.target.value }, false)}
-                        onBlur={() => commitElements(elements)}
-                        placeholder="Ketik teks..."
-                        className="w-36 sm:w-44 rounded-full border border-[#EFAAB6] bg-[#FFF9FA] px-3 py-1 text-xs font-bold text-[#162A4C] focus:outline-none focus:ring-2 focus:ring-[#EFAAB6]"
-                      />
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setTextModalOpen(true)
+                          }}
+                          className="px-3.5 py-1.5 rounded-full bg-[#162A4C] hover:bg-[#243E6B] text-white text-xs font-extrabold inline-flex items-center gap-1.5 shadow-xs cursor-pointer"
+                        >
+                          ✏️ Edit Teks: &ldquo;{(selectedEl.text || '').slice(0, 14)}&rdquo;
+                        </button>
+                      </div>
                     )}
 
                     {/* Font Picker for Backdrop Text */}
@@ -1937,6 +1941,91 @@ export default function FullscreenStudioPage({
           })}
         </nav>
       )}
+
+      {/* Top-Anchored Text / Name / Font Editor Modal (Always ABOVE iOS Keyboard — NEVER disappears!) */}
+      {textModalOpen &&
+        selectedEl &&
+        (selectedEl.type === 'custom-text' ||
+          selectedEl.type === 'marquee-number' ||
+          selectedEl.type === 'neon-sign') && (
+          <div
+            onClick={() => {
+              commitElements(elements)
+              setTextModalOpen(false)
+            }}
+            className="fixed inset-0 z-[70] bg-[#162A4C]/30 backdrop-blur-[2px] flex items-start justify-center pt-14 sm:pt-20 px-4"
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              onPointerDown={(e) => e.stopPropagation()}
+              className="w-full max-w-md rounded-3xl bg-white shadow-2xl border border-[#F2D5DC] p-4 space-y-3"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-extrabold text-[#162A4C]">
+                  {selectedEl.type === 'marquee-number'
+                    ? 'Edit Angka Lampu'
+                    : selectedEl.type === 'neon-sign'
+                      ? 'Edit Tulisan LED Kuning'
+                      : 'Edit Tulisan Backdrop'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    commitElements(elements)
+                    setTextModalOpen(false)
+                  }}
+                  className="px-3.5 py-1 rounded-full bg-[#162A4C] text-white text-xs font-extrabold cursor-pointer"
+                >
+                  Selesai
+                </button>
+              </div>
+
+              <input
+                type="text"
+                autoFocus
+                maxLength={selectedEl.type === 'marquee-number' ? 3 : 28}
+                value={selectedEl.text ?? ''}
+                onChange={(e) => updateSelected({ text: e.target.value }, false)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    commitElements(elements)
+                    setTextModalOpen(false)
+                  }
+                }}
+                placeholder="Ketik nama / ucapan di sini..."
+                className="w-full rounded-2xl border-2 border-[#EFAAB6] bg-[#FFF9FA] px-4 py-2.5 text-sm font-bold text-[#162A4C] focus:outline-none focus:ring-2 focus:ring-[#162A4C]/20"
+              />
+
+              {selectedEl.type === 'custom-text' && (
+                <div className="space-y-1.5">
+                  <span className="block text-[10px] font-extrabold uppercase tracking-wider text-[#162A4C]/55">
+                    Pilih Jenis Font
+                  </span>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {TEXT_FONTS.map((f) => {
+                      const active = (selectedEl.fontFamily || TEXT_FONTS[0].id) === f.id
+                      return (
+                        <button
+                          key={f.id}
+                          type="button"
+                          onClick={() => updateSelected({ fontFamily: f.id })}
+                          style={{ fontFamily: f.family, fontStyle: f.italic ? 'italic' : 'normal' }}
+                          className={`py-2 px-2 rounded-xl text-xs font-bold border transition-all cursor-pointer truncate ${
+                            active
+                              ? 'bg-[#162A4C] text-white border-[#162A4C]'
+                              : 'bg-[#FFF9FA] text-[#162A4C] border-[#F2D5DC] hover:bg-[#FDEBED]'
+                          }`}
+                        >
+                          {f.label}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
       {/* Studio 2D Content Settings Drawer (Admin-Only via GitHub Personal Access Token) */}
       {studioSettingsOpen && (

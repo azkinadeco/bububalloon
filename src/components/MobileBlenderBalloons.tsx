@@ -1,11 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import { motion } from 'framer-motion'
 import type { BalloonMood, PopBurstEvent } from './heroMoods'
 
 const TAP_WORDS = ['Bloop!', 'Boop!', 'Pop!', 'Paw!']
 const BOOM_WORDS = ['PAW!', 'BLOOP!', 'POP!']
 
-// Maps each mood to 5 photorealistic Blender Cycles-rendered 3D balloon PNGs!
+// Photorealistic, zero-grain Blender Cycles 3D balloon renders
 const MOOD_BLENDER_SPRITES: Record<string, [string, string, string, string, string]> = {
   bubu: [
     '/balloons/blush.png',
@@ -43,18 +42,18 @@ interface BalloonSlot {
   top: string
   width: string
   rotate: number
-  floatY: number
-  duration: number
+  duration: string
+  delay: string
   zIndex: number
 }
 
-// Balanced Dribbble-style 5-balloon composition tailored for iPhone portrait viewport
+// Balanced Dribbble-style 5-balloon composition tailored for iPhone portrait
 const MOBILE_SLOTS: BalloonSlot[] = [
-  { id: 0, left: '50%', top: '26%', width: '40vw', rotate: -5, floatY: -10, duration: 4.2, zIndex: 5 },
-  { id: 1, left: '78%', top: '16%', width: '33vw', rotate: 10, floatY: -13, duration: 4.8, zIndex: 4 },
-  { id: 2, left: '21%', top: '18%', width: '31vw', rotate: -11, floatY: -11, duration: 4.5, zIndex: 3 },
-  { id: 3, left: '80%', top: '38%', width: '25vw', rotate: 12, floatY: -9, duration: 3.9, zIndex: 2 },
-  { id: 4, left: '19%', top: '38%', width: '24vw', rotate: -10, floatY: -8, duration: 4.1, zIndex: 2 },
+  { id: 0, left: '50%', top: '27%', width: '40vw', rotate: -5, duration: '4.4s', delay: '0s', zIndex: 5 },
+  { id: 1, left: '78%', top: '16%', width: '33vw', rotate: 10, duration: '5.0s', delay: '-1.2s', zIndex: 4 },
+  { id: 2, left: '21%', top: '18%', width: '31vw', rotate: -11, duration: '4.7s', delay: '-2.1s', zIndex: 3 },
+  { id: 3, left: '80%', top: '39%', width: '25vw', rotate: 12, duration: '4.1s', delay: '-0.8s', zIndex: 2 },
+  { id: 4, left: '19%', top: '39%', width: '24vw', rotate: -10, duration: '4.3s', delay: '-1.7s', zIndex: 2 },
 ]
 
 interface InteractiveBlenderBalloonProps {
@@ -72,12 +71,14 @@ function InteractiveBlenderBalloon({
 }: InteractiveBlenderBalloonProps) {
   const [tapCount, setTapCount] = useState(0)
   const [popped, setPopped] = useState(false)
-  const [bounceKey, setBounceKey] = useState(0)
+  const [squish, setSquish] = useState(false)
   const respawnRef = useRef<number | null>(null)
+  const squishRef = useRef<number | null>(null)
 
   useEffect(() => {
     return () => {
       if (respawnRef.current) window.clearTimeout(respawnRef.current)
+      if (squishRef.current) window.clearTimeout(squishRef.current)
     }
   }, [])
 
@@ -104,11 +105,14 @@ function InteractiveBlenderBalloon({
       if (respawnRef.current) window.clearTimeout(respawnRef.current)
       respawnRef.current = window.setTimeout(() => {
         setPopped(false)
-        setBounceKey((k) => k + 1)
+        setSquish(true)
+        squishRef.current = window.setTimeout(() => setSquish(false), 180)
       }, 5000)
     } else {
       setTapCount(nextTap)
-      setBounceKey((k) => k + 1)
+      setSquish(true)
+      if (squishRef.current) window.clearTimeout(squishRef.current)
+      squishRef.current = window.setTimeout(() => setSquish(false), 160)
       onPopBurst?.({
         id: Date.now() + Math.random(),
         word: TAP_WORDS[(nextTap - 1) % TAP_WORDS.length],
@@ -121,7 +125,8 @@ function InteractiveBlenderBalloon({
     }
   }
 
-  const tensionScale = 1 + tapCount * 0.028
+  const tensionScale = 1 + tapCount * 0.026
+  const activeScale = popped ? 0.02 : squish ? tensionScale * 1.16 : tensionScale
 
   return (
     <div
@@ -129,58 +134,43 @@ function InteractiveBlenderBalloon({
         left: slot.left,
         top: slot.top,
         width: slot.width,
-        maxWidth: '175px',
+        maxWidth: '172px',
         zIndex: slot.zIndex,
-        transform: 'translate(-50%, -50%)',
+        transform: 'translate3d(-50%, -50%, 0)',
       }}
       className="absolute pointer-events-auto select-none"
     >
-      {/* Pure GPU-composited continuous gentle floating motion */}
-      <motion.div
-        animate={{
-          y: [0, slot.floatY, 0],
-          rotate: [slot.rotate - 2, slot.rotate + 2, slot.rotate - 2],
-        }}
-        transition={{
-          duration: slot.duration,
-          repeat: Infinity,
-          ease: 'easeInOut',
+      {/* Pure CoreAnimation GPU CSS float (0% JS main-thread CPU, locked 60-120fps on iPhone!) */}
+      <div
+        className="bubu-balloon-float"
+        style={{
+          animationDuration: slot.duration,
+          animationDelay: slot.delay,
         }}
       >
-        <motion.button
-          key={bounceKey}
+        <button
           type="button"
           aria-label="Ketuk Balon 3D"
           onPointerDown={handleTap}
-          initial={
-            popped
-              ? { scale: tensionScale, opacity: 1 }
-              : bounceKey > 0
-                ? { scale: tensionScale * 1.18, rotate: 6 }
-                : { scale: 0.9, opacity: 0 }
-          }
-          animate={
-            popped
-              ? { scale: 0.01, opacity: 0 }
-              : { scale: tensionScale, opacity: 1, rotate: 0 }
-          }
-          transition={
-            popped
-              ? { duration: 0.14, ease: 'easeIn' }
-              : { type: 'spring', stiffness: 460, damping: 16 }
-          }
-          className="w-full aspect-[420/540] cursor-pointer focus:outline-none touch-manipulation [-webkit-tap-highlight-color:transparent]"
-          style={{ pointerEvents: popped ? 'none' : 'auto' }}
+          style={{
+            transform: `rotate(${slot.rotate + (squish ? 6 : 0)}deg) scale(${activeScale})`,
+            opacity: popped ? 0 : 1,
+            pointerEvents: popped ? 'none' : 'auto',
+            transition: popped
+              ? 'transform 130ms ease-in, opacity 130ms ease-in'
+              : 'transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 240ms ease-out',
+          }}
+          className="w-full aspect-[340/440] cursor-pointer focus:outline-none touch-manipulation will-change-transform [-webkit-tap-highlight-color:transparent]"
         >
           <img
             src={src}
             alt="Bubu 3D Balloon"
             draggable={false}
             decoding="async"
-            className="w-full h-full object-contain drop-shadow-[0_14px_20px_rgba(22,42,76,0.14)] will-change-transform"
+            className="w-full h-full object-contain select-none pointer-events-none"
           />
-        </motion.button>
-      </motion.div>
+        </button>
+      </div>
     </div>
   )
 }

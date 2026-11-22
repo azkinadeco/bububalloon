@@ -227,7 +227,7 @@ export function ModelShowcaseSection() {
               </div>
               <div className="flex gap-3 pt-1">
                 <a
-                  href={`/?studio=1&preset=${encodeURIComponent(detailModel.studioPresetId)}`}
+                  href={`/?studio=1&preset=${encodeURIComponent(detailModel.studioPresetId)}&modelId=${encodeURIComponent(detailModel.id)}`}
                   target="_blank"
                   rel="noreferrer"
                   className="flex-1 inline-flex items-center justify-center gap-1.5 px-5 py-3 rounded-full bg-[#FDEBED] hover:bg-[#F7D3DA] text-[#162A4C] text-xs font-extrabold"

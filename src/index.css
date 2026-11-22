@@ -95,6 +95,22 @@
   padding-top: max(0.75rem, env(safe-area-inset-top));
 }
 
+@keyframes bubuBalloonFloat {
+  0%, 100% {
+    transform: translate3d(0, 0px, 0);
+  }
+  50% {
+    transform: translate3d(0, -10px, 0);
+  }
+}
+
+.bubu-balloon-float {
+  animation-name: bubuBalloonFloat;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  will-change: transform;
+}
+
 input[type="range"] {
   accent-color: #162A4C;
 }
