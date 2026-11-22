@@ -212,60 +212,62 @@ function SeamlessScene({
   })
 
   if (isMobile) {
-    // Seamless full-bleed iPhone composition — balloons float naturally around top & bottom edges,
-    // leaving the center clean for crisp typography, and EVERY balloon is tappable!
+    // Sculptural Dribbble magazine-cover iPhone composition:
+    // Lush, well-spaced 3D balloons floating in the upper showcase half of the screen
+    // above the editorial headline (zero clash, zero overlap, 100% interactive!)
     return (
-      <group ref={rootRef}>
+      <group ref={rootRef} position={[0, 0.25, 0]}>
         <FloatingBalloon
           geometry={balloonGeo}
-          position={[1.55, 2.25, 0.2]}
-          scale={0.84}
+          position={[0.05, 1.55, 0.35]}
+          scale={0.96}
           color={c1}
           finish="satin"
           speed={1.3}
-          rotation={[0.04, 0, -0.08]}
+          rotation={[0.04, 0, -0.06]}
           onTap={onTap}
           onExplode={onExplode}
         />
         <FloatingBalloon
           geometry={balloonGeo}
-          position={[-1.55, 2.35, -0.35]}
-          scale={0.76}
+          position={[1.75, 2.25, -0.35]}
+          scale={0.82}
           color={c2}
           finish="satin"
-          speed={1.5}
-          rotation={[-0.03, 0.15, 0.1]}
+          speed={1.55}
+          rotation={[-0.03, 0.16, 0.1]}
           onTap={onTap}
           onExplode={onExplode}
         />
         <FloatingBalloon
           geometry={balloonGeo}
-          position={[0.05, 3.05, -1.1]}
-          scale={0.64}
+          position={[-1.75, 2.1, -0.45]}
+          scale={0.78}
           color={c3}
           finish="pearl"
-          speed={1.2}
+          speed={1.25}
+          rotation={[0.04, 0, -0.12]}
           onTap={onTap}
           onExplode={onExplode}
         />
         <FloatingBalloon
           geometry={balloonGeo}
-          position={[1.65, -2.05, 0.1]}
-          scale={0.68}
+          position={[1.7, 0.45, -0.75]}
+          scale={0.6}
           color={c5}
           finish="chrome"
-          speed={1.65}
+          speed={1.7}
           rotation={[0, 0, 0.12]}
           onTap={onTap}
           onExplode={onExplode}
         />
         <FloatingBalloon
           geometry={balloonGeo}
-          position={[-1.65, -2.15, -0.25]}
-          scale={0.64}
+          position={[-1.65, 0.45, -0.8]}
+          scale={0.58}
           color={c4}
           finish="satin"
-          speed={1.45}
+          speed={1.5}
           rotation={[0.05, 0, -0.1]}
           onTap={onTap}
           onExplode={onExplode}

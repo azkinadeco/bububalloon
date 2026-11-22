@@ -4,21 +4,20 @@ export type StickerCategory = 'Backdrop' | 'Balon' | 'Properti'
 
 export type StickerType =
   | 'arch-panel'
+  | 'arch-panel-small'
   | 'double-arch'
   | 'scallop-arch'
   | 'circle-backdrop'
   | 'square-backdrop-2x2'
   | 'square-backdrop-2x3'
   | 'sequin-wall-2x2'
-  | 'sequin-wall-2x3'
   | 'garland-arch'
   | 'balloon-cluster'
-  | 'single-balloon'
   | 'foil-heart'
   | 'foil-star'
   | 'ribbon-bow'
   | 'uplight-spot'
-  | 'cylinder-fluted-70x25'
+  | 'cylinder-fluted-60x25'
   | 'cylinder-fluted-80x40'
   | 'acrylic-cube-table'
   | 'gold-cross-table'
@@ -41,7 +40,7 @@ export interface CanvasElement {
   color: string
   secondaryColor?: string
   text?: string
-  customImageUrl?: string // For custom backdrop banner (per panel) OR custom PNG property
+  customImageUrl?: string
 }
 
 export interface StickerDefinition {
@@ -82,47 +81,50 @@ export interface RoomBackground {
 }
 
 export const ROOM_BACKGROUNDS: RoomBackground[] = [
-  { id: 'blush', label: 'Studio Blush', wallTop: '#FFF7F8', wallBottom: '#FDEBED', floor: '#F3DCE1', accent: '#EFAAB6', style: 'studio' },
-  { id: 'living-room', label: 'Ruang Tamu', wallTop: '#F9F5F0', wallBottom: '#EFE6DC', floor: '#C9A889', accent: '#DFD2C3', style: 'living' },
-  { id: 'hotel-lobby', label: 'Lobby Hotel', wallTop: '#F4EFE8', wallBottom: '#E6DDD1', floor: '#D8CFC4', accent: '#DFBE8A', style: 'hotel' },
-  { id: 'resto', label: 'Resto', wallTop: '#3C322C', wallBottom: '#57463C', floor: '#2E2520', accent: '#E5BE8A', style: 'resto' },
-  { id: 'cafe', label: 'Cafe Estetik', wallTop: '#F5EFE9', wallBottom: '#E8DDD1', floor: '#B9987B', accent: '#C8A98E', style: 'cafe' },
-  { id: 'stage', label: 'Atas Panggung', wallTop: '#161D30', wallBottom: '#232E4A', floor: '#2B2320', accent: '#FFE49E', style: 'stage' },
-  { id: 'ballroom', label: 'Ballroom', wallTop: '#F7F1E8', wallBottom: '#EADFCB', floor: '#CBBBA6', accent: '#DFBE8A', style: 'ballroom' },
-  { id: 'outdoor', label: 'Outdoor Taman', wallTop: '#DDF0FF', wallBottom: '#F5FAFF', floor: '#9BC18D', accent: '#79A56C', style: 'outdoor' },
+  { id: 'blush', label: 'Studio Blush', wallTop: '#FFF7F9', wallBottom: '#FCE8EC', floor: '#F1D6DC', accent: '#EFAAB6', style: 'studio' },
+  { id: 'living-room', label: 'Ruang Tamu', wallTop: '#FAF6F0', wallBottom: '#EDE3D7', floor: '#C9A785', accent: '#D8C7B4', style: 'living' },
+  { id: 'hotel-lobby', label: 'Lobby Hotel', wallTop: '#F5F0E8', wallBottom: '#E6DCCE', floor: '#D5CBBF', accent: '#DFBE8A', style: 'hotel' },
+  { id: 'resto', label: 'Resto', wallTop: '#2E2622', wallBottom: '#4A3B33', floor: '#241D19', accent: '#E5BE8A', style: 'resto' },
+  { id: 'cafe', label: 'Cafe Estetik', wallTop: '#F7F1EB', wallBottom: '#E9DDD0', floor: '#B89577', accent: '#C9A98B', style: 'cafe' },
+  { id: 'stage', label: 'Atas Panggung', wallTop: '#111829', wallBottom: '#1F2B47', floor: '#26201E', accent: '#FFE49E', style: 'stage' },
+  { id: 'ballroom', label: 'Ballroom', wallTop: '#F8F2E9', wallBottom: '#E8DBC7', floor: '#C9B8A3', accent: '#DFBE8A', style: 'ballroom' },
+  { id: 'outdoor', label: 'Outdoor Taman', wallTop: '#CBE8FF', wallBottom: '#F2F9FF', floor: '#8EB87F', accent: '#6B995E', style: 'outdoor' },
 ]
 
+/**
+ * Real-world proportional 2D decoration library:
+ * Scale reference: 2m = ~32% canvas width, 1m = ~16% canvas width.
+ */
 export const STICKER_DEFINITIONS: StickerDefinition[] = [
   // Backdrop
-  { type: 'arch-panel', label: 'Arch Panel', category: 'Backdrop', defaultColor: '#FFFDFC', defaultWidth: 26, supportsBanner: true },
-  { type: 'double-arch', label: 'Double Arch', category: 'Backdrop', defaultColor: '#FFFDFC', defaultSecondary: '#FDEBED', defaultWidth: 36, supportsBanner: true },
-  { type: 'scallop-arch', label: 'Arch Gelombang', category: 'Backdrop', defaultColor: '#FDEBED', defaultWidth: 26, supportsBanner: true },
-  { type: 'circle-backdrop', label: 'Backdrop Bulat', category: 'Backdrop', defaultColor: '#FFFDFC', defaultWidth: 30, supportsBanner: true },
+  { type: 'arch-panel', label: 'Oval 2×1m', category: 'Backdrop', defaultColor: '#FFFDFC', defaultWidth: 18, supportsBanner: true },
+  { type: 'arch-panel-small', label: 'Oval 1,5×0,9m', category: 'Backdrop', defaultColor: '#FDEBED', defaultWidth: 16, supportsBanner: true },
+  { type: 'double-arch', label: 'Double Oval', category: 'Backdrop', defaultColor: '#FFFDFC', defaultSecondary: '#FDEBED', defaultWidth: 32, supportsBanner: true },
+  { type: 'scallop-arch', label: 'Arch Gelombang', category: 'Backdrop', defaultColor: '#FDEBED', defaultWidth: 22, supportsBanner: true },
+  { type: 'circle-backdrop', label: 'Bulat 2×2m', category: 'Backdrop', defaultColor: '#FFFDFC', defaultWidth: 32, supportsBanner: true },
   { type: 'square-backdrop-2x2', label: 'Kotak 2×2m', category: 'Backdrop', defaultColor: '#FFFDFC', defaultWidth: 32, supportsBanner: true },
-  { type: 'square-backdrop-2x3', label: 'Kotak 2×3m', category: 'Backdrop', defaultColor: '#FFFDFC', defaultWidth: 44, supportsBanner: true },
+  { type: 'square-backdrop-2x3', label: 'Kotak 2×3m', category: 'Backdrop', defaultColor: '#FFFDFC', defaultWidth: 46, supportsBanner: true },
   { type: 'sequin-wall-2x2', label: 'Shimmer 2×2m', category: 'Backdrop', defaultColor: '#DFBE8A', defaultWidth: 32 },
-  { type: 'sequin-wall-2x3', label: 'Shimmer 2×3m', category: 'Backdrop', defaultColor: '#DFBE8A', defaultWidth: 44 },
 
-  // Balon (default 1 warna agar konsisten & semua balon bisa diubah warna!)
-  { type: 'garland-arch', label: 'Garland Lengkung', category: 'Balon', defaultColor: '#F2B3BD', defaultSecondary: '#F2B3BD', defaultWidth: 46 },
-  { type: 'balloon-cluster', label: 'Balon Cluster', category: 'Balon', defaultColor: '#F2B3BD', defaultSecondary: '#F2B3BD', defaultWidth: 19 },
-  { type: 'single-balloon', label: 'Balon Satuan', category: 'Balon', defaultColor: '#EFAAB6', defaultWidth: 9 },
+  // Balon (default 1 warna seragam, bebas diubah warna)
+  { type: 'garland-arch', label: 'Garland Lengkung', category: 'Balon', defaultColor: '#F2B3BD', defaultSecondary: '#F2B3BD', defaultWidth: 42 },
+  { type: 'balloon-cluster', label: 'Balon Cluster', category: 'Balon', defaultColor: '#F2B3BD', defaultSecondary: '#F2B3BD', defaultWidth: 18 },
   { type: 'foil-heart', label: 'Foil Love', category: 'Balon', defaultColor: '#D98395', defaultWidth: 10 },
   { type: 'foil-star', label: 'Foil Bintang', category: 'Balon', defaultColor: '#DFBE8A', defaultWidth: 10 },
-  { type: 'ribbon-bow', label: 'Pita Satin', category: 'Balon', defaultColor: '#EFAAB6', defaultWidth: 11 },
+  { type: 'ribbon-bow', label: 'Pita Satin', category: 'Balon', defaultColor: '#EFAAB6', defaultWidth: 10 },
 
   // Properti Dekor Sesungguhnya (Proporsi Realistis)
   { type: 'uplight-spot', label: 'Lampu Sorot Bawah', category: 'Properti', defaultColor: '#FFE599', defaultWidth: 16 },
-  { type: 'cylinder-fluted-70x25', label: 'Silinder Garis 70×25', category: 'Properti', defaultColor: '#FFFDFC', defaultWidth: 8 },
-  { type: 'cylinder-fluted-80x40', label: 'Silinder Garis 80×40', category: 'Properti', defaultColor: '#FFFDFC', defaultWidth: 13 },
-  { type: 'acrylic-cube-table', label: 'Meja Acrylic Kotak', category: 'Properti', defaultColor: '#E8F4FA', defaultWidth: 13 },
-  { type: 'gold-cross-table', label: 'Meja Emas Silang', category: 'Properti', defaultColor: '#FFFDFC', defaultSecondary: '#D4AF37', defaultWidth: 16 },
-  { type: 'marquee-number', label: 'Angka Lampu', category: 'Properti', defaultColor: '#FFFDF8', defaultWidth: 16, defaultText: '17' },
-  { type: 'custom-text', label: 'Tulisan Nama', category: 'Properti', defaultColor: '#162A4C', defaultWidth: 26, defaultText: 'Happy Birthday' },
-  { type: 'neon-sign', label: 'Lampu Neon', category: 'Properti', defaultColor: '#FFE28A', defaultWidth: 22, defaultText: 'Oh Baby' },
-  { type: 'teddy-bear', label: 'Boneka Teddy', category: 'Properti', defaultColor: '#D8AD86', defaultWidth: 11 },
-  { type: 'ribbon-cake', label: 'Kue Pita', category: 'Properti', defaultColor: '#FDEBED', defaultWidth: 9 },
-  { type: 'floral-bouquet', label: 'Buket Bunga', category: 'Properti', defaultColor: '#EFAAB6', defaultWidth: 11 },
+  { type: 'cylinder-fluted-60x25', label: 'Silinder Garis 60×25', category: 'Properti', defaultColor: '#FFFDFC', defaultWidth: 7.2 },
+  { type: 'cylinder-fluted-80x40', label: 'Silinder Garis 80×40', category: 'Properti', defaultColor: '#FFFDFC', defaultWidth: 12 },
+  { type: 'acrylic-cube-table', label: 'Meja Acrylic Kotak', category: 'Properti', defaultColor: '#E8F4FA', defaultWidth: 12.5 },
+  { type: 'gold-cross-table', label: 'Meja Emas Silang', category: 'Properti', defaultColor: '#FFFDFC', defaultSecondary: '#D4AF37', defaultWidth: 15.5 },
+  { type: 'marquee-number', label: 'Angka Lampu', category: 'Properti', defaultColor: '#FFFDF8', defaultWidth: 15, defaultText: '17' },
+  { type: 'custom-text', label: 'Tulisan Nama', category: 'Properti', defaultColor: '#162A4C', defaultWidth: 24, defaultText: 'Happy Birthday' },
+  { type: 'neon-sign', label: 'Lampu Neon', category: 'Properti', defaultColor: '#FFE28A', defaultWidth: 21, defaultText: 'Oh Baby' },
+  { type: 'teddy-bear', label: 'Boneka Teddy', category: 'Properti', defaultColor: '#D8AD86', defaultWidth: 10.5 },
+  { type: 'ribbon-cake', label: 'Kue Pita', category: 'Properti', defaultColor: '#FDEBED', defaultWidth: 8.5 },
+  { type: 'floral-bouquet', label: 'Buket Bunga', category: 'Properti', defaultColor: '#EFAAB6', defaultWidth: 10.5 },
 ]
 
 export interface StudioPreset {
@@ -139,13 +141,14 @@ export const STUDIO_PRESETS: StudioPreset[] = [
     backgroundId: 'blush',
     elements: [
       { id: 's0', type: 'uplight-spot', x: 50, y: 69, width: 22, rotation: 0, color: '#FFE5A3' },
-      { id: 's1', type: 'double-arch', x: 51, y: 52, width: 42, rotation: 0, color: '#FFFDFC', secondaryColor: '#FDEBED' },
-      { id: 's3', type: 'garland-arch', x: 48, y: 36, width: 47, rotation: 0, color: '#F2B3BD', secondaryColor: '#162A4C' },
-      { id: 's4', type: 'custom-text', x: 44, y: 45, width: 23, rotation: 0, color: '#162A4C', text: 'Happy Birthday' },
-      { id: 's5', type: 'ribbon-bow', x: 69, y: 52, width: 10, rotation: 8, color: '#EFAAB6' },
+      { id: 's1', type: 'arch-panel', x: 46, y: 50, width: 20, rotation: 0, color: '#FFFDFC' },
+      { id: 's2', type: 'arch-panel-small', x: 59, y: 56, width: 17, rotation: 0, color: '#FDEBED' },
+      { id: 's3', type: 'garland-arch', x: 49, y: 36, width: 45, rotation: 0, color: '#F2B3BD', secondaryColor: '#162A4C' },
+      { id: 's4', type: 'custom-text', x: 46, y: 45, width: 22, rotation: 0, color: '#162A4C', text: 'Happy Birthday' },
+      { id: 's5', type: 'ribbon-bow', x: 68, y: 52, width: 10, rotation: 8, color: '#EFAAB6' },
       { id: 's6', type: 'cylinder-fluted-80x40', x: 50, y: 71, width: 12, rotation: 0, color: '#FFFDFC' },
-      { id: 's7', type: 'ribbon-cake', x: 50, y: 54, width: 9, rotation: 0, color: '#FDEBED' },
-      { id: 's8', type: 'balloon-cluster', x: 28, y: 72, width: 17, rotation: -4, color: '#F2B3BD', secondaryColor: '#162A4C' },
+      { id: 's7', type: 'ribbon-cake', x: 50, y: 54, width: 8.5, rotation: 0, color: '#FDEBED' },
+      { id: 's8', type: 'balloon-cluster', x: 30, y: 72, width: 16, rotation: -4, color: '#F2B3BD', secondaryColor: '#162A4C' },
     ],
   },
   {
@@ -153,11 +156,11 @@ export const STUDIO_PRESETS: StudioPreset[] = [
     name: 'Champagne 17 Shimmer',
     backgroundId: 'ballroom',
     elements: [
-      { id: 'g0', type: 'uplight-spot', x: 50, y: 70, width: 26, rotation: 0, color: '#FFE49E' },
-      { id: 'g1', type: 'sequin-wall-2x3', x: 50, y: 50, width: 46, rotation: 0, color: '#DFBE8A' },
-      { id: 'g2', type: 'garland-arch', x: 50, y: 34, width: 52, rotation: 0, color: '#F2B3BD', secondaryColor: '#DFBE8A' },
-      { id: 'g3', type: 'neon-sign', x: 50, y: 43, width: 24, rotation: 0, color: '#FFF5C2', text: 'Sweet 17' },
-      { id: 'g4', type: 'marquee-number', x: 38, y: 71, width: 16, rotation: 0, color: '#FFFDF8', text: '17' },
+      { id: 'g0', type: 'uplight-spot', x: 50, y: 70, width: 24, rotation: 0, color: '#FFE49E' },
+      { id: 'g1', type: 'sequin-wall-2x2', x: 50, y: 50, width: 34, rotation: 0, color: '#DFBE8A' },
+      { id: 'g2', type: 'garland-arch', x: 50, y: 34, width: 46, rotation: 0, color: '#F2B3BD', secondaryColor: '#DFBE8A' },
+      { id: 'g3', type: 'neon-sign', x: 50, y: 43, width: 22, rotation: 0, color: '#FFF5C2', text: 'Sweet 17' },
+      { id: 'g4', type: 'marquee-number', x: 38, y: 71, width: 15, rotation: 0, color: '#FFFDF8', text: '17' },
       { id: 'g5', type: 'gold-cross-table', x: 61, y: 71, width: 15, rotation: 0, color: '#FFFDFC', secondaryColor: '#D4AF37' },
       { id: 'g6', type: 'ribbon-cake', x: 61, y: 55, width: 8, rotation: 0, color: '#FFFDFC' },
     ],
@@ -167,14 +170,14 @@ export const STUDIO_PRESETS: StudioPreset[] = [
     name: 'Teddy Pastel Cloud',
     backgroundId: 'living-room',
     elements: [
-      { id: 'p1', type: 'scallop-arch', x: 43, y: 53, width: 27, rotation: 0, color: '#FFFDFC' },
-      { id: 'p2', type: 'arch-panel', x: 59, y: 52, width: 25, rotation: 0, color: '#BFDDF0' },
-      { id: 'p3', type: 'garland-arch', x: 50, y: 35, width: 48, rotation: 0, color: '#BFDDF0', secondaryColor: '#F7E6B5' },
-      { id: 'p4', type: 'custom-text', x: 58, y: 46, width: 22, rotation: 0, color: '#162A4C', text: 'Baby Theo 1st' },
-      { id: 'p5', type: 'cylinder-fluted-80x40', x: 41, y: 71, width: 12, rotation: 0, color: '#FFFDFC' },
-      { id: 'p6', type: 'teddy-bear', x: 41, y: 53, width: 10, rotation: 0, color: '#D8AD86' },
-      { id: 'p7', type: 'cylinder-fluted-70x25', x: 66, y: 73, width: 7.5, rotation: 0, color: '#F7E6B5' },
-      { id: 'p8', type: 'balloon-cluster', x: 74, y: 72, width: 16, rotation: 6, color: '#F2B3BD', secondaryColor: '#F7E6B5' },
+      { id: 'p1', type: 'arch-panel', x: 44, y: 50, width: 20, rotation: 0, color: '#FFFDFC' },
+      { id: 'p2', type: 'arch-panel-small', x: 58, y: 56, width: 17, rotation: 0, color: '#BFDDF0' },
+      { id: 'p3', type: 'garland-arch', x: 50, y: 35, width: 45, rotation: 0, color: '#BFDDF0', secondaryColor: '#F7E6B5' },
+      { id: 'p4', type: 'custom-text', x: 56, y: 48, width: 20, rotation: 0, color: '#162A4C', text: 'Baby Theo 1st' },
+      { id: 'p5', type: 'cylinder-fluted-80x40', x: 42, y: 71, width: 11.5, rotation: 0, color: '#FFFDFC' },
+      { id: 'p6', type: 'teddy-bear', x: 42, y: 53, width: 10, rotation: 0, color: '#D8AD86' },
+      { id: 'p7', type: 'cylinder-fluted-60x25', x: 64, y: 74, width: 7.2, rotation: 0, color: '#F7E6B5' },
+      { id: 'p8', type: 'balloon-cluster', x: 72, y: 72, width: 15, rotation: 6, color: '#F2B3BD', secondaryColor: '#F7E6B5' },
     ],
   },
   {
@@ -183,19 +186,16 @@ export const STUDIO_PRESETS: StudioPreset[] = [
     backgroundId: 'hotel-lobby',
     elements: [
       { id: 'b0', type: 'uplight-spot', x: 50, y: 70, width: 22, rotation: 0, color: '#FFD8E0' },
-      { id: 'b1', type: 'square-backdrop-2x2', x: 50, y: 51, width: 34, rotation: 0, color: '#FFFDFC' },
-      { id: 'b2', type: 'garland-arch', x: 50, y: 34, width: 46, rotation: 0, color: '#EFAAB6', secondaryColor: '#DFBE8A' },
-      { id: 'b3', type: 'custom-text', x: 50, y: 46, width: 24, rotation: 0, color: '#D98395', text: 'Bride to Be' },
-      { id: 'b4', type: 'acrylic-cube-table', x: 50, y: 72, width: 13, rotation: 0, color: '#E8F4FA' },
-      { id: 'b5', type: 'floral-bouquet', x: 50, y: 56, width: 11, rotation: 0, color: '#EFAAB6' },
-      { id: 'b6', type: 'ribbon-bow', x: 68, y: 52, width: 10, rotation: 8, color: '#D98395' },
+      { id: 'b1', type: 'circle-backdrop', x: 50, y: 50, width: 32, rotation: 0, color: '#FFFDFC' },
+      { id: 'b2', type: 'garland-arch', x: 50, y: 34, width: 44, rotation: 0, color: '#EFAAB6', secondaryColor: '#DFBE8A' },
+      { id: 'b3', type: 'custom-text', x: 50, y: 47, width: 23, rotation: 0, color: '#D98395', text: 'Bride to Be' },
+      { id: 'b4', type: 'acrylic-cube-table', x: 50, y: 72, width: 12.5, rotation: 0, color: '#E8F4FA' },
+      { id: 'b5', type: 'floral-bouquet', x: 50, y: 56, width: 10.5, rotation: 0, color: '#EFAAB6' },
+      { id: 'b6', type: 'ribbon-bow', x: 67, y: 52, width: 10, rotation: 8, color: '#D98395' },
     ],
   },
 ]
 
-/**
- * Helper: slightly lighten or darken a hex color for realistic sequin & balloon shading.
- */
 function shadeHex(hex: string, percent: number): string {
   const clean = hex.replace('#', '')
   if (clean.length !== 6) return hex
@@ -207,24 +207,53 @@ function shadeHex(hex: string, percent: number): string {
 }
 
 /**
- * Renders architectural Room Background SVG overlay (windows, pillars, stage lights, etc.)
+ * High-craft editorial architectural Room Background SVG overlays!
  */
 export function RoomBackgroundOverlay({ bg }: { bg: RoomBackground }) {
-  if (bg.style === 'studio') return null
+  if (bg.style === 'studio') {
+    return (
+      <svg viewBox="0 0 800 500" preserveAspectRatio="none" className="pointer-events-none absolute inset-0 w-full h-full">
+        <defs>
+          <radialGradient id="studio-soft-glow" cx="50%" cy="35%" r="55%">
+            <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.65" />
+            <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
+          </radialGradient>
+        </defs>
+        <rect width="800" height="390" fill="url(#studio-soft-glow)" />
+        {/* Clean baseboard molding */}
+        <rect x="0" y="378" width="800" height="12" fill="#FFFFFF" opacity="0.7" />
+        <line x1="0" y1="390" x2="800" y2="390" stroke="#D9B7BE" strokeWidth="1.5" opacity="0.6" />
+        {/* Soft floor bounce shadow */}
+        <ellipse cx="400" cy="412" rx="260" ry="20" fill="#162A4C" opacity="0.06" />
+      </svg>
+    )
+  }
 
   if (bg.style === 'living') {
     return (
       <svg viewBox="0 0 800 500" preserveAspectRatio="none" className="pointer-events-none absolute inset-0 w-full h-full">
-        {/* Wainscoting wall molding */}
-        <rect x="0" y="295" width="800" height="95" fill="#E6DACB" opacity="0.45" />
-        <line x1="0" y1="295" x2="800" y2="295" stroke="#CBBAA6" strokeWidth="3" />
-        {/* Sunlit side window */}
-        <rect x="34" y="48" width="110" height="200" rx="4" fill="#FFFDF8" stroke="#D8C9B8" strokeWidth="6" opacity="0.7" />
-        <line x1="89" y1="48" x2="89" y2="248" stroke="#D8C9B8" strokeWidth="4" opacity="0.7" />
-        <line x1="34" y1="148" x2="144" y2="148" stroke="#D8C9B8" strokeWidth="4" opacity="0.7" />
-        {/* Wood floor planks */}
-        <line x1="0" y1="420" x2="800" y2="420" stroke="#A68567" strokeWidth="1" opacity="0.35" />
-        <line x1="0" y1="458" x2="800" y2="458" stroke="#A68567" strokeWidth="1" opacity="0.35" />
+        {/* Classic wainscoting panels */}
+        <rect x="0" y="285" width="800" height="105" fill="#E9DFD3" opacity="0.6" />
+        <line x1="0" y1="285" x2="800" y2="285" stroke="#D4C4B0" strokeWidth="4" />
+        {[40, 210, 440, 610].map((x) => (
+          <rect key={x} x={x} y="302" width="145" height="68" rx="3" fill="none" stroke="#D4C4B0" strokeWidth="2" opacity="0.7" />
+        ))}
+        {/* Sunlit tall window + sheer curtain on left */}
+        <rect x="28" y="34" width="118" height="225" rx="6" fill="#FFFDF8" stroke="#D8C9B8" strokeWidth="7" />
+        <line x1="87" y1="34" x2="87" y2="259" stroke="#D8C9B8" strokeWidth="4" />
+        <line x1="28" y1="145" x2="146" y2="145" stroke="#D8C9B8" strokeWidth="4" />
+        <path d="M18 28 H62 Q48 160 54 388 H18 Z" fill="#FFFDFB" opacity="0.72" />
+        {/* Warm potted indoor plant on far right */}
+        <ellipse cx="732" cy="340" rx="22" ry="38" fill="#89A882" opacity="0.75" />
+        <ellipse cx="712" cy="352" rx="18" ry="28" fill="#76966F" opacity="0.75" transform="rotate(-18 712 352)" />
+        <ellipse cx="752" cy="352" rx="18" ry="28" fill="#9BB894" opacity="0.75" transform="rotate(18 752 352)" />
+        <rect x="714" y="366" width="36" height="36" rx="6" fill="#D9C3AE" />
+        {/* Warm wood floor planks */}
+        <rect x="0" y="388" width="800" height="112" fill="#C9A785" opacity="0.35" />
+        {[410, 434, 462, 488].map((y) => (
+          <line key={y} x1="0" y1={y} x2="800" y2={y} stroke="#9E7C5C" strokeWidth="1.2" opacity="0.32" />
+        ))}
+        <ellipse cx="400" cy="415" rx="250" ry="18" fill="#4A3520" opacity="0.08" />
       </svg>
     )
   }
@@ -232,38 +261,70 @@ export function RoomBackgroundOverlay({ bg }: { bg: RoomBackground }) {
   if (bg.style === 'hotel' || bg.style === 'ballroom') {
     return (
       <svg viewBox="0 0 800 500" preserveAspectRatio="none" className="pointer-events-none absolute inset-0 w-full h-full">
-        {/* Classic luxury pillars */}
-        <rect x="22" y="0" width="52" height="390" fill="#FFFDF8" opacity="0.32" />
-        <rect x="726" y="0" width="52" height="390" fill="#FFFDF8" opacity="0.32" />
-        {/* Wall panel frames */}
-        <rect x="105" y="45" width="590" height="310" fill="none" stroke={bg.accent} strokeWidth="2" opacity="0.45" />
-        {/* Soft chandelier glow at top */}
-        <ellipse cx="400" cy="18" rx="180" ry="42" fill="#FFF5D6" opacity="0.55" />
+        <defs>
+          <radialGradient id="chandelier-glow" cx="50%" cy="10%" r="55%">
+            <stop offset="0%" stopColor="#FFF4D0" stopOpacity="0.8" />
+            <stop offset="100%" stopColor="#FFF4D0" stopOpacity="0" />
+          </radialGradient>
+        </defs>
+        <rect width="800" height="390" fill="url(#chandelier-glow)" />
+        {/* Grand marble pillars */}
+        <rect x="18" y="0" width="58" height="390" fill="#FFFDF8" opacity="0.55" />
+        <rect x="724" y="0" width="58" height="390" fill="#FFFDF8" opacity="0.55" />
+        <line x1="76" y1="0" x2="76" y2="390" stroke={bg.accent} strokeWidth="2.5" opacity="0.65" />
+        <line x1="724" y1="0" x2="724" y2="390" stroke={bg.accent} strokeWidth="2.5" opacity="0.65" />
+        {/* Gold architectural wall trim */}
+        <rect x="108" y="42" width="584" height="316" fill="none" stroke={bg.accent} strokeWidth="2" opacity="0.55" />
+        <rect x="118" y="52" width="564" height="296" fill="none" stroke={bg.accent} strokeWidth="1" opacity="0.35" />
+        {/* Stylized Crystal Chandelier silhouette at top */}
+        <g opacity="0.72">
+          <line x1="400" y1="0" x2="400" y2="26" stroke="#DFBE8A" strokeWidth="3" />
+          <ellipse cx="400" cy="30" rx="68" ry="10" fill="#FFF7DE" stroke="#DFBE8A" strokeWidth="2" />
+          <ellipse cx="400" cy="42" rx="44" ry="8" fill="#FFF7DE" stroke="#DFBE8A" strokeWidth="1.5" />
+        </g>
         {bg.style === 'ballroom' && (
           <>
-            <ellipse cx="190" cy="24" rx="90" ry="26" fill="#FFF5D6" opacity="0.45" />
-            <ellipse cx="610" cy="24" rx="90" ry="26" fill="#FFF5D6" opacity="0.45" />
+            <ellipse cx="185" cy="24" rx="42" ry="7" fill="#FFF7DE" stroke="#DFBE8A" strokeWidth="1.5" opacity="0.6" />
+            <ellipse cx="615" cy="24" rx="42" ry="7" fill="#FFF7DE" stroke="#DFBE8A" strokeWidth="1.5" opacity="0.6" />
           </>
         )}
+        {/* Polished marble floor reflection */}
+        <line x1="0" y1="390" x2="800" y2="390" stroke={bg.accent} strokeWidth="2" opacity="0.5" />
+        <ellipse cx="400" cy="414" rx="270" ry="20" fill="#162A4C" opacity="0.08" />
       </svg>
     )
   }
 
   if (bg.style === 'resto' || bg.style === 'cafe') {
+    const isDark = bg.style === 'resto'
     return (
       <svg viewBox="0 0 800 500" preserveAspectRatio="none" className="pointer-events-none absolute inset-0 w-full h-full">
-        {/* Warm pendant lamps */}
-        {[160, 400, 640].map((cx) => (
+        {/* Vertical wooden acoustic slats on sides */}
+        {[18, 34, 50, 66, 734, 750, 766, 782].map((x) => (
+          <rect key={x} x={x} y="0" width="8" height="390" fill={bg.accent} opacity={isDark ? 0.18 : 0.28} />
+        ))}
+        {/* Hanging warm Edison pendant lamps */}
+        {[165, 400, 635].map((cx) => (
           <g key={cx}>
-            <line x1={cx} y1="0" x2={cx} y2="62" stroke={bg.accent} strokeWidth="2" opacity="0.6" />
-            <ellipse cx={cx} cy="72" rx="22" ry="12" fill={bg.accent} opacity="0.7" />
-            <ellipse cx={cx} cy="96" rx="70" ry="42" fill="#FFE6B0" opacity="0.16" />
+            <line x1={cx} y1="0" x2={cx} y2="54" stroke={bg.accent} strokeWidth="2.5" opacity="0.7" />
+            <path d={`M${cx - 22} 72 Q${cx} 48 ${cx + 22} 72 Z`} fill={isDark ? '#D4A86A' : '#B89577'} />
+            <circle cx={cx} cy="74" r="6" fill="#FFE8A3" />
+            <ellipse cx={cx} cy="118" rx="95" ry="62" fill="#FFE6A8" opacity={isDark ? 0.14 : 0.22} />
           </g>
         ))}
-        {/* Vertical slat paneling on sides */}
-        {[24, 42, 60, 740, 758, 776].map((x) => (
-          <line key={x} x1={x} y1="0" x2={x} y2="390" stroke={bg.accent} strokeWidth="4" opacity="0.22" />
-        ))}
+        {/* Subtle cafe menu board / framed art */}
+        <rect
+          x="105"
+          y="100"
+          width="82"
+          height="110"
+          rx="4"
+          fill={isDark ? '#1F1A17' : '#FFFDF9'}
+          stroke={bg.accent}
+          strokeWidth="3"
+          opacity="0.55"
+        />
+        <line x1="0" y1="390" x2="800" y2="390" stroke={bg.accent} strokeWidth="2" opacity="0.35" />
       </svg>
     )
   }
@@ -271,43 +332,55 @@ export function RoomBackgroundOverlay({ bg }: { bg: RoomBackground }) {
   if (bg.style === 'stage') {
     return (
       <svg viewBox="0 0 800 500" preserveAspectRatio="none" className="pointer-events-none absolute inset-0 w-full h-full">
-        {/* Stage curtains */}
-        <path d="M0 0 H110 Q85 200 100 390 H0 Z" fill="#0F1526" opacity="0.65" />
-        <path d="M800 0 H690 Q715 200 700 390 H800 Z" fill="#0F1526" opacity="0.65" />
-        {/* Stage spotlights */}
-        <polygon points="180,0 80,390 310,390" fill="#FFE8A8" opacity="0.09" />
-        <polygon points="620,0 490,390 720,390" fill="#F2B3BD" opacity="0.09" />
-        {/* Stage edge */}
-        <rect x="0" y="385" width="800" height="8" fill="#DFBE8A" opacity="0.55" />
+        {/* Velvet stage curtains */}
+        <path d="M0 0 H125 Q95 190 112 390 H0 Z" fill="#0B101E" opacity="0.82" />
+        <path d="M800 0 H675 Q705 190 688 390 H800 Z" fill="#0B101E" opacity="0.82" />
+        {/* Dramatic crossed stage spotlights */}
+        <polygon points="180,0 50,390 320,390" fill="#FFE8A8" opacity="0.11" />
+        <polygon points="620,0 480,390 750,390" fill="#F2B3BD" opacity="0.11" />
+        <polygon points="400,0 240,390 560,390" fill="#FFFFFF" opacity="0.06" />
+        {/* Truss bar & stage lamps */}
+        <rect x="0" y="0" width="800" height="12" fill="#0A0E1A" />
+        {[180, 400, 620].map((cx) => (
+          <circle key={cx} cx={cx} cy="14" r="7" fill="#FFE8A8" opacity="0.9" />
+        ))}
+        {/* Stage wooden lip */}
+        <rect x="0" y="384" width="800" height="9" fill="#DFBE8A" opacity="0.65" />
       </svg>
     )
   }
 
-  // Outdoor garden
+  // Outdoor Garden — sunlit sky, soft clouds, lush layered garden hedge & grass
   return (
     <svg viewBox="0 0 800 500" preserveAspectRatio="none" className="pointer-events-none absolute inset-0 w-full h-full">
-      {/* Soft clouds */}
-      <g fill="#FFFFFF" opacity="0.8">
-        <circle cx="140" cy="76" r="28" />
-        <circle cx="172" cy="72" r="34" />
-        <circle cx="206" cy="78" r="24" />
-        <circle cx="620" cy="68" r="26" />
-        <circle cx="654" cy="64" r="32" />
+      {/* Soft sunlit clouds */}
+      <g fill="#FFFFFF" opacity="0.88">
+        <circle cx="120" cy="76" r="28" />
+        <circle cx="154" cy="70" r="36" />
+        <circle cx="192" cy="78" r="24" />
+        <circle cx="610" cy="64" r="26" />
+        <circle cx="646" cy="58" r="34" />
+        <circle cx="680" cy="68" r="24" />
       </g>
-      {/* Distant soft garden bushes */}
-      <g fill="#8BB77E" opacity="0.55">
-        <circle cx="60" cy="380" r="65" />
-        <circle cx="150" cy="390" r="55" />
-        <circle cx="660" cy="390" r="58" />
-        <circle cx="745" cy="378" r="68" />
+      {/* Distant rolling garden hills */}
+      <path d="M0 390 Q200 330 420 365 T800 350 V390 Z" fill="#A5C996" opacity="0.65" />
+      {/* Lush side garden trees/bushes */}
+      <g fill="#7EA872" opacity="0.72">
+        <circle cx="48" cy="365" r="72" />
+        <circle cx="128" cy="382" r="54" />
+        <circle cx="682" cy="380" r="56" />
+        <circle cx="755" cy="362" r="74" />
       </g>
+      {/* Subtle garden string lights overhead */}
+      <path d="M0 35 Q400 95 800 35" fill="none" stroke="#8C7B6B" strokeWidth="1.5" opacity="0.45" />
+      {[120, 240, 360, 440, 560, 680].map((cx, i) => (
+        <circle key={cx} cx={cx} cy={52 + (i === 2 || i === 3 ? 16 : i === 1 || i === 4 ? 10 : 0)} r="4" fill="#FFF3B0" />
+      ))}
+      <ellipse cx="400" cy="415" rx="250" ry="18" fill="#2D4A22" opacity="0.1" />
     </svg>
   )
 }
 
-/**
- * Helper to render authentic Sequin Shimmer Wall (grid of reflective 30x30cm shimmer tiles)
- */
 function SequinShimmerSVG({
   color,
   cols,
@@ -369,22 +442,13 @@ function SequinShimmerSVG({
 
   return (
     <svg viewBox={`0 0 ${viewW} ${viewH}`} className="w-full h-full drop-shadow-md">
-      {/* Backing grid frame */}
       <rect x="4" y="4" width={viewW - 8} height={viewH - 8} rx="4" fill={dark} />
       {tiles}
-      {/* Subtle diagonal shimmer sheen */}
-      <polygon
-        points={`10,10 ${viewW * 0.45},10 10,${viewH * 0.65}`}
-        fill="#FFFFFF"
-        opacity="0.14"
-      />
+      <polygon points={`10,10 ${viewW * 0.45},10 10,${viewH * 0.65}`} fill="#FFFFFF" opacity="0.14" />
     </svg>
   )
 }
 
-/**
- * Renders every realistic 2D decoration property & custom PNG sticker.
- */
 export function StickerSVG({ element }: { element: CanvasElement }): React.ReactElement {
   const { id, type, color, secondaryColor, text = '', customImageUrl } = element
   const sec = secondaryColor || color
@@ -403,63 +467,89 @@ export function StickerSVG({ element }: { element: CanvasElement }): React.React
       )
 
     case 'arch-panel':
+      // True 2m tall × 1m wide Oval/Arch Panel (1:2 proportion)
       return (
-        <svg viewBox="0 0 180 240" className="w-full h-full drop-shadow-sm">
+        <svg viewBox="0 0 110 220" className="w-full h-full drop-shadow-sm">
           <defs>
             <clipPath id={clipId}>
-              <path d="M12 234 V94 A78 78 0 0 1 168 94 V234 Z" />
+              <path d="M8 214 V55 A47 47 0 0 1 102 55 V214 Z" />
             </clipPath>
           </defs>
-          <path d="M12 234 V94 A78 78 0 0 1 168 94 V234 Z" fill={color} stroke="#162A4C" strokeOpacity="0.14" strokeWidth="2.5" />
+          <path d="M8 214 V55 A47 47 0 0 1 102 55 V214 Z" fill={color} stroke="#162A4C" strokeOpacity="0.14" strokeWidth="2.5" />
           {customImageUrl && (
             <image
               href={customImageUrl}
-              x="12"
-              y="16"
-              width="156"
-              height="218"
-              preserveAspectRatio="xMidYMid slice"
-              clipPath={`url(#${clipId})`}
-            />
-          )}
-          <path d="M12 234 V94 A78 78 0 0 1 168 94 V234 Z" fill="none" stroke="#162A4C" strokeOpacity="0.14" strokeWidth="2.5" />
-        </svg>
-      )
-
-    case 'double-arch':
-      return (
-        <svg viewBox="0 0 260 230" className="w-full h-full drop-shadow-sm">
-          <defs>
-            <clipPath id={clipId}>
-              <path d="M16 224 V92 A74 74 0 0 1 164 92 V224 Z" />
-            </clipPath>
-          </defs>
-          <path d="M16 224 V92 A74 74 0 0 1 164 92 V224 Z" fill={color} stroke="#162A4C" strokeOpacity="0.14" strokeWidth="2.5" />
-          {customImageUrl && (
-            <image
-              href={customImageUrl}
-              x="16"
-              y="18"
-              width="148"
+              x="8"
+              y="8"
+              width="94"
               height="206"
               preserveAspectRatio="xMidYMid slice"
               clipPath={`url(#${clipId})`}
             />
           )}
-          <path d="M124 224 V116 A60 60 0 0 1 244 116 V224 Z" fill={sec} stroke="#162A4C" strokeOpacity="0.14" strokeWidth="2.5" />
+          <path d="M8 214 V55 A47 47 0 0 1 102 55 V214 Z" fill="none" stroke="#162A4C" strokeOpacity="0.14" strokeWidth="2.5" />
+        </svg>
+      )
+
+    case 'arch-panel-small':
+      // True 1.5m tall × 0.9m wide Small Oval/Arch Panel (3:5 proportion)
+      return (
+        <svg viewBox="0 0 108 180" className="w-full h-full drop-shadow-sm">
+          <defs>
+            <clipPath id={clipId}>
+              <path d="M8 174 V54 A46 46 0 0 1 100 54 V174 Z" />
+            </clipPath>
+          </defs>
+          <path d="M8 174 V54 A46 46 0 0 1 100 54 V174 Z" fill={color} stroke="#162A4C" strokeOpacity="0.14" strokeWidth="2.5" />
+          {customImageUrl && (
+            <image
+              href={customImageUrl}
+              x="8"
+              y="8"
+              width="92"
+              height="166"
+              preserveAspectRatio="xMidYMid slice"
+              clipPath={`url(#${clipId})`}
+            />
+          )}
+          <path d="M8 174 V54 A46 46 0 0 1 100 54 V174 Z" fill="none" stroke="#162A4C" strokeOpacity="0.14" strokeWidth="2.5" />
+        </svg>
+      )
+
+    case 'double-arch':
+      return (
+        <svg viewBox="0 0 220 220" className="w-full h-full drop-shadow-sm">
+          <defs>
+            <clipPath id={clipId}>
+              <path d="M12 214 V62 A50 50 0 0 1 112 62 V214 Z" />
+            </clipPath>
+          </defs>
+          <path d="M12 214 V62 A50 50 0 0 1 112 62 V214 Z" fill={color} stroke="#162A4C" strokeOpacity="0.14" strokeWidth="2.5" />
+          {customImageUrl && (
+            <image
+              href={customImageUrl}
+              x="12"
+              y="12"
+              width="100"
+              height="202"
+              preserveAspectRatio="xMidYMid slice"
+              clipPath={`url(#${clipId})`}
+            />
+          )}
+          <path d="M104 214 V94 A48 48 0 0 1 200 94 V214 Z" fill={sec} stroke="#162A4C" strokeOpacity="0.14" strokeWidth="2.5" />
         </svg>
       )
 
     case 'scallop-arch':
       return (
-        <svg viewBox="0 0 180 240" className="w-full h-full drop-shadow-sm">
+        <svg viewBox="0 0 150 220" className="w-full h-full drop-shadow-sm">
           <defs>
             <clipPath id={clipId}>
-              <path d="M16 234 V98 C16 82 28 74 36 62 C44 48 56 36 70 30 C82 24 98 24 110 30 C124 36 136 48 144 62 C152 74 164 82 164 98 V234 Z" />
+              <path d="M14 214 V88 C14 72 24 64 31 52 C38 38 48 26 60 20 C70 15 80 15 90 20 C102 26 112 38 119 52 C126 64 136 72 136 88 V214 Z" />
             </clipPath>
           </defs>
           <path
-            d="M16 234 V98 C16 82 28 74 36 62 C44 48 56 36 70 30 C82 24 98 24 110 30 C124 36 136 48 144 62 C152 74 164 82 164 98 V234 Z"
+            d="M14 214 V88 C14 72 24 64 31 52 C38 38 48 26 60 20 C70 15 80 15 90 20 C102 26 112 38 119 52 C126 64 136 72 136 88 V214 Z"
             fill={color}
             stroke="#162A4C"
             strokeOpacity="0.14"
@@ -468,10 +558,10 @@ export function StickerSVG({ element }: { element: CanvasElement }): React.React
           {customImageUrl && (
             <image
               href={customImageUrl}
-              x="16"
-              y="22"
-              width="148"
-              height="212"
+              x="14"
+              y="14"
+              width="122"
+              height="200"
               preserveAspectRatio="xMidYMid slice"
               clipPath={`url(#${clipId})`}
             />
@@ -480,26 +570,27 @@ export function StickerSVG({ element }: { element: CanvasElement }): React.React
       )
 
     case 'circle-backdrop':
+      // True 2m × 2m Circle Backdrop
       return (
-        <svg viewBox="0 0 200 200" className="w-full h-full drop-shadow-sm">
+        <svg viewBox="0 0 220 220" className="w-full h-full drop-shadow-sm">
           <defs>
             <clipPath id={clipId}>
-              <circle cx="100" cy="100" r="88" />
+              <circle cx="110" cy="110" r="100" />
             </clipPath>
           </defs>
-          <circle cx="100" cy="100" r="90" fill={color} stroke="#DFBE8A" strokeWidth="4" />
+          <circle cx="110" cy="110" r="102" fill={color} stroke="#DFBE8A" strokeWidth="4" />
           {customImageUrl && (
             <image
               href={customImageUrl}
-              x="12"
-              y="12"
-              width="176"
-              height="176"
+              x="10"
+              y="10"
+              width="200"
+              height="200"
               preserveAspectRatio="xMidYMid slice"
               clipPath={`url(#${clipId})`}
             />
           )}
-          <circle cx="100" cy="100" r="90" fill="none" stroke="#DFBE8A" strokeWidth="4" />
+          <circle cx="110" cy="110" r="102" fill="none" stroke="#DFBE8A" strokeWidth="4" />
         </svg>
       )
 
@@ -554,9 +645,6 @@ export function StickerSVG({ element }: { element: CanvasElement }): React.React
     case 'sequin-wall-2x2':
       return <SequinShimmerSVG color={color} cols={10} rows={10} viewW={220} viewH={220} />
 
-    case 'sequin-wall-2x3':
-      return <SequinShimmerSVG color={color} cols={15} rows={10} viewW={330} viewH={220} />
-
     case 'garland-arch': {
       const midTone = shadeHex(color, 12)
       return (
@@ -593,7 +681,6 @@ export function StickerSVG({ element }: { element: CanvasElement }): React.React
     }
 
     case 'balloon-cluster': {
-      // FIXED: ZERO hardcoded white balloon — all 5 balloons follow color & secondaryColor!
       const tint = shadeHex(color, 10)
       return (
         <svg viewBox="0 0 140 130" className="w-full h-full drop-shadow-sm">
@@ -620,16 +707,6 @@ export function StickerSVG({ element }: { element: CanvasElement }): React.React
         </svg>
       )
     }
-
-    case 'single-balloon':
-      return (
-        <svg viewBox="0 0 90 150" className="w-full h-full drop-shadow-sm">
-          <path d="M45 96 Q49 118 42 146" fill="none" stroke="#C5A9AF" strokeWidth="2.2" strokeLinecap="round" />
-          <ellipse cx="45" cy="48" rx="34" ry="42" fill={color} stroke="#162A4C" strokeOpacity="0.09" strokeWidth="1.5" />
-          <polygon points="40,90 50,90 45,98" fill={color} />
-          <ellipse cx="32" cy="34" rx="7" ry="13" fill="#FFF" opacity="0.52" transform="rotate(-18 32 34)" />
-        </svg>
-      )
 
     case 'foil-heart':
       return (
@@ -679,32 +756,29 @@ export function StickerSVG({ element }: { element: CanvasElement }): React.React
               <stop offset="100%" stopColor={color} stopOpacity="0" />
             </linearGradient>
           </defs>
-          {/* Upward soft spotlight cone */}
           <polygon points="74,154 106,154 172,10 8,10" fill={`url(#beam-${clipId})`} />
-          {/* Realistic black LED Par Lamp housing on floor */}
           <rect x="66" y="150" width="48" height="18" rx="4" fill="#232936" />
           <ellipse cx="90" cy="151" rx="20" ry="4.5" fill={color} />
           <path d="M62 172 H118" stroke="#161B24" strokeWidth="4" strokeLinecap="round" />
         </svg>
       )
 
-    case 'cylinder-fluted-70x25': {
-      // Realistic slender 70cm tall x 25cm wide fluted cylinder plinth (aspect ~1:2.6)
+    case 'cylinder-fluted-60x25': {
+      // Exact 60cm tall × 25cm wide fluted cylinder plinth (aspect 2.4:1)
       const groove = shadeHex(color, -14)
       return (
-        <svg viewBox="0 0 80 200" className="w-full h-full drop-shadow-sm">
-          <rect x="8" y="12" width="64" height="180" rx="6" fill={color} stroke="#162A4C" strokeOpacity="0.15" strokeWidth="2" />
+        <svg viewBox="0 0 80 180" className="w-full h-full drop-shadow-sm">
+          <rect x="8" y="12" width="64" height="160" rx="6" fill={color} stroke="#162A4C" strokeOpacity="0.15" strokeWidth="2" />
           {[18, 28, 38, 48, 58, 66].map((x) => (
-            <line key={x} x1={x} y1="18" x2={x} y2="188" stroke={groove} strokeWidth="2.5" opacity="0.65" />
+            <line key={x} x1={x} y1="18" x2={x} y2="168" stroke={groove} strokeWidth="2.5" opacity="0.65" />
           ))}
           <ellipse cx="40" cy="14" rx="32" ry="6" fill={shadeHex(color, 8)} stroke="#162A4C" strokeOpacity="0.12" strokeWidth="1.5" />
-          <rect x="6" y="186" width="68" height="6" rx="3" fill={groove} opacity="0.45" />
+          <rect x="6" y="166" width="68" height="6" rx="3" fill={groove} opacity="0.45" />
         </svg>
       )
     }
 
     case 'cylinder-fluted-80x40': {
-      // Realistic sturdy 80cm tall x 40cm wide fluted cylinder plinth (aspect 1:2)
       const groove = shadeHex(color, -14)
       return (
         <svg viewBox="0 0 120 220" className="w-full h-full drop-shadow-sm">
@@ -719,44 +793,34 @@ export function StickerSVG({ element }: { element: CanvasElement }): React.React
     }
 
     case 'acrylic-cube-table':
-      // Realistic clear glossy square acrylic pedestal table
       return (
         <svg viewBox="0 0 130 190" className="w-full h-full drop-shadow-sm">
           <rect x="12" y="14" width="106" height="166" rx="4" fill={color} fillOpacity="0.34" stroke="#FFFFFF" strokeWidth="3" />
           <rect x="12" y="14" width="106" height="166" rx="4" fill="none" stroke="#9CB6C9" strokeOpacity="0.55" strokeWidth="1.5" />
-          {/* Inner perspective back edges */}
           <line x1="24" y1="26" x2="106" y2="26" stroke="#FFFFFF" strokeOpacity="0.55" strokeWidth="1.5" />
           <line x1="24" y1="26" x2="24" y2="168" stroke="#FFFFFF" strokeOpacity="0.4" strokeWidth="1.5" />
           <line x1="106" y1="26" x2="106" y2="168" stroke="#FFFFFF" strokeOpacity="0.4" strokeWidth="1.5" />
-          {/* Diagonal glass specular reflection */}
           <polygon points="18,18 58,18 18,108" fill="#FFFFFF" opacity="0.45" />
           <polygon points="112,80 112,150 64,176" fill="#FFFFFF" opacity="0.22" />
         </svg>
       )
 
     case 'gold-cross-table': {
-      // Realistic square top + metallic gold X-cross iron legs
       const gold = secondaryColor || '#D4AF37'
       const goldDark = shadeHex(gold, -22)
       return (
         <svg viewBox="0 0 160 180" className="w-full h-full drop-shadow-sm">
-          {/* Square tabletop */}
           <rect x="10" y="12" width="140" height="16" rx="3" fill={color} stroke="#162A4C" strokeOpacity="0.16" strokeWidth="2" />
-          {/* Gold outer frame */}
           <rect x="20" y="28" width="120" height="142" fill="none" stroke={gold} strokeWidth="5.5" />
-          {/* Metallic Gold Cross (X) legs */}
           <line x1="22" y1="30" x2="138" y2="168" stroke={gold} strokeWidth="5" />
           <line x1="138" y1="30" x2="22" y2="168" stroke={goldDark} strokeWidth="5" />
-          {/* Subtle gold highlight */}
           <line x1="22" y1="30" x2="138" y2="168" stroke="#FFF7D6" strokeWidth="1.4" opacity="0.65" />
-          {/* Bottom horizontal gold bar */}
           <line x1="16" y1="170" x2="144" y2="170" stroke={gold} strokeWidth="5" strokeLinecap="round" />
         </svg>
       )
     }
 
     case 'marquee-number': {
-      // FIXED: NO BOX! Freestanding giant illuminated marquee digits with warm glowing bulbs!
       const display = (text || '17').slice(0, 3)
       return (
         <svg viewBox="0 0 150 150" className="w-full h-full">
@@ -769,7 +833,6 @@ export function StickerSVG({ element }: { element: CanvasElement }): React.React
               </feMerge>
             </filter>
           </defs>
-          {/* Warm soft halo behind freestanding number */}
           <text
             x="75"
             y="118"
@@ -783,7 +846,6 @@ export function StickerSVG({ element }: { element: CanvasElement }): React.React
           >
             {display}
           </text>
-          {/* Crisp 3D-edged white/custom marquee number body */}
           <text
             x="75"
             y="118"
@@ -797,7 +859,6 @@ export function StickerSVG({ element }: { element: CanvasElement }): React.React
           >
             {display}
           </text>
-          {/* Glowing warm marquee bulbs inlaid along the number */}
           <text
             x="75"
             y="118"
@@ -898,10 +959,6 @@ export function StickerSVG({ element }: { element: CanvasElement }): React.React
   }
 }
 
-/**
- * Compact 2D Studio Preview Renderer — supports both built-in presets
- * AND custom user-created Studio 2D packages!
- */
 export function StudioPresetPreview({
   presetId,
   customElements,
