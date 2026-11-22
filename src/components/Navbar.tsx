@@ -94,15 +94,27 @@ export function Navbar({ onOpenSettings }: NavbarProps) {
               </a>
             </div>
 
-            {/* Mobile Menu Button */}
-            <button
-              type="button"
-              onClick={() => setMobileOpen((v) => !v)}
-              aria-label="Menu"
-              className="md:hidden w-9 h-9 rounded-full flex items-center justify-center bg-[#FDEBED] text-[#162A4C]"
-            >
-              {mobileOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
-            </button>
+            {/* Mobile Quick Studio 2D Pill + Menu Button */}
+            <div className="md:hidden flex items-center gap-1.5">
+              <a
+                href="/?studio=1"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-[#FDEBED] text-[11px] font-extrabold text-[#162A4C]"
+              >
+                <Sparkles className="w-3 h-3 text-[#D98395]" />
+                2D
+                <ArrowUpRight className="w-3 h-3" />
+              </a>
+              <button
+                type="button"
+                onClick={() => setMobileOpen((v) => !v)}
+                aria-label="Menu"
+                className="w-9 h-9 rounded-full flex items-center justify-center bg-[#FDEBED] text-[#162A4C]"
+              >
+                {mobileOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+              </button>
+            </div>
           </div>
         </div>
 

@@ -33,9 +33,17 @@ export const BALLOON_MOODS: BalloonMood[] = [
   },
 ]
 
+export interface SpawnedBalloon {
+  id: string
+  position: [number, number, number]
+  scale: number
+  colorIdx: number
+  finish: 'satin' | 'chrome' | 'pearl'
+}
+
 function createPlushBalloonGeo(isMobile: boolean): THREE.LatheGeometry {
   const pts: THREE.Vector2[] = []
-  const steps = isMobile ? 16 : 22
+  const steps = isMobile ? 18 : 24
   for (let i = 0; i <= steps; i++) {
     const t = i / steps
     const a = t * Math.PI
@@ -43,7 +51,7 @@ function createPlushBalloonGeo(isMobile: boolean): THREE.LatheGeometry {
     const y = -Math.cos(a) * 1.08
     pts.push(new THREE.Vector2(r, y))
   }
-  return new THREE.LatheGeometry(pts, isMobile ? 20 : 28)
+  return new THREE.LatheGeometry(pts, isMobile ? 22 : 30)
 }
 
 interface FloatingBalloonProps {
@@ -54,8 +62,7 @@ interface FloatingBalloonProps {
   finish: 'satin' | 'chrome' | 'pearl'
   speed: number
   rotation?: [number, number, number]
-  onPop?: (color: string) => void
-  interactive: boolean
+  onPop: (color: string) => void
 }
 
 function FloatingBalloon({
@@ -67,7 +74,6 @@ function FloatingBalloon({
   speed,
   rotation = [0, 0, 0],
   onPop,
-  interactive,
 }: FloatingBalloonProps) {
   const ref = useRef<THREE.Group>(null)
   const [hovered, setHovered] = useState(false)
@@ -77,55 +83,44 @@ function FloatingBalloon({
     if (!ref.current) return
     const dt = Math.min(delta, 0.05)
     if (popAnim.current > 0.001) {
-      popAnim.current = THREE.MathUtils.lerp(popAnim.current, 0, dt * 6)
+      popAnim.current = THREE.MathUtils.lerp(popAnim.current, 0, dt * 5.5)
+      ref.current.rotation.y += dt * 4.5 * popAnim.current
     }
-    const target = scale * (hovered ? 1.07 : 1) * (1 + Math.sin(popAnim.current * Math.PI) * 0.18)
-    ref.current.scale.setScalar(THREE.MathUtils.lerp(ref.current.scale.x, target, dt * 7))
+    const target = scale * (hovered ? 1.08 : 1) * (1 + Math.sin(popAnim.current * Math.PI) * 0.24)
+    ref.current.scale.setScalar(THREE.MathUtils.lerp(ref.current.scale.x, target, dt * 8))
   })
 
   const matProps = useMemo(() => {
     if (finish === 'chrome') {
-      return { color, metalness: 0.72, roughness: 0.16, clearcoat: 0.9, clearcoatRoughness: 0.1 }
+      return { color, metalness: 0.74, roughness: 0.15, clearcoat: 0.92, clearcoatRoughness: 0.09 }
     }
     if (finish === 'pearl') {
-      return { color, metalness: 0.08, roughness: 0.26, clearcoat: 0.78, clearcoatRoughness: 0.16 }
+      return { color, metalness: 0.08, roughness: 0.24, clearcoat: 0.8, clearcoatRoughness: 0.15 }
     }
-    return { color, metalness: 0.02, roughness: 0.22, clearcoat: 0.88, clearcoatRoughness: 0.12 }
+    return { color, metalness: 0.02, roughness: 0.2, clearcoat: 0.9, clearcoatRoughness: 0.11 }
   }, [color, finish])
 
   return (
-    <Float speed={speed} rotationIntensity={0.12} floatIntensity={0.28}>
+    <Float speed={speed} rotationIntensity={0.14} floatIntensity={0.3}>
       <group
         ref={ref}
         position={position}
         rotation={rotation}
         scale={scale}
-        onPointerOver={
-          interactive
-            ? (e) => {
-                e.stopPropagation()
-                setHovered(true)
-                document.body.style.cursor = 'pointer'
-              }
-            : undefined
-        }
-        onPointerOut={
-          interactive
-            ? () => {
-                setHovered(false)
-                document.body.style.cursor = 'auto'
-              }
-            : undefined
-        }
-        onClick={
-          interactive
-            ? (e) => {
-                e.stopPropagation()
-                popAnim.current = 1
-                onPop?.(color)
-              }
-            : undefined
-        }
+        onPointerOver={(e) => {
+          e.stopPropagation()
+          setHovered(true)
+          document.body.style.cursor = 'pointer'
+        }}
+        onPointerOut={() => {
+          setHovered(false)
+          document.body.style.cursor = 'auto'
+        }}
+        onClick={(e) => {
+          e.stopPropagation()
+          popAnim.current = 1
+          onPop(color)
+        }}
       >
         <mesh geometry={geometry}>
           <meshPhysicalMaterial {...matProps} />
@@ -139,13 +134,15 @@ function FloatingBalloon({
   )
 }
 
-function SeamlessScene({
+function InteractiveBalloonStage({
   mood,
   isMobile,
+  spawned,
   onPop,
 }: {
   mood: BalloonMood
   isMobile: boolean
+  spawned: SpawnedBalloon[]
   onPop: (color: string) => void
 }) {
   const rootRef = useRef<THREE.Group>(null)
@@ -155,164 +152,86 @@ function SeamlessScene({
   useFrame((state, delta) => {
     if (!rootRef.current) return
     const dt = Math.min(delta, 0.05)
-    if (isMobile) {
-      // Gentle autonomous breathing sway on iPhone (zero touch/pointer overhead)
-      rootRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.45) * 0.08
-      return
-    }
-    rootRef.current.rotation.y = THREE.MathUtils.lerp(
-      rootRef.current.rotation.y,
-      state.pointer.x * 0.12,
-      dt * 2.2
-    )
-    rootRef.current.rotation.x = THREE.MathUtils.lerp(
-      rootRef.current.rotation.x,
-      -state.pointer.y * 0.08,
-      dt * 2.2
-    )
+    const targetY = isMobile
+      ? Math.sin(state.clock.elapsedTime * 0.55) * 0.12 + state.pointer.x * 0.18
+      : state.pointer.x * 0.18
+    const targetX = isMobile ? -state.pointer.y * 0.08 : -state.pointer.y * 0.1
+    rootRef.current.rotation.y = THREE.MathUtils.lerp(rootRef.current.rotation.y, targetY, dt * 2.6)
+    rootRef.current.rotation.x = THREE.MathUtils.lerp(rootRef.current.rotation.x, targetX, dt * 2.6)
   })
-
-  if (isMobile) {
-    // Precision iPhone portrait composition — frames the upper area cleanly with zero overlap!
-    return (
-      <group ref={rootRef}>
-        <FloatingBalloon
-          geometry={balloonGeo}
-          position={[1.35, 1.85, 0.1]}
-          scale={0.86}
-          color={c1}
-          finish="satin"
-          speed={1.25}
-          rotation={[0.04, 0, -0.08]}
-          interactive={false}
-        />
-        <FloatingBalloon
-          geometry={balloonGeo}
-          position={[-1.45, 2.25, -0.6]}
-          scale={0.72}
-          color={c2}
-          finish="satin"
-          speed={1.45}
-          rotation={[-0.03, 0.1, 0.1]}
-          interactive={false}
-        />
-        <FloatingBalloon
-          geometry={balloonGeo}
-          position={[0.05, 2.75, -1.35]}
-          scale={0.62}
-          color={c3}
-          finish="pearl"
-          speed={1.15}
-          interactive={false}
-        />
-        <FloatingBalloon
-          geometry={balloonGeo}
-          position={[1.75, -1.65, -0.8]}
-          scale={0.58}
-          color={c5}
-          finish="chrome"
-          speed={1.55}
-          interactive={false}
-        />
-        <FloatingBalloon
-          geometry={balloonGeo}
-          position={[-1.55, -1.85, -1.1]}
-          scale={0.52}
-          color={c4}
-          finish="satin"
-          speed={1.35}
-          interactive={false}
-        />
-      </group>
-    )
-  }
 
   return (
     <group ref={rootRef}>
-      {/* Desktop non-overlapping hero balloons */}
+      {/* Sculpted non-overlapping centerpiece balloons (every pair has clean clearance!) */}
       <FloatingBalloon
         geometry={balloonGeo}
-        position={[2.15, 0.35, 0.3]}
-        scale={1.08}
+        position={[0.0, 0.35, 0.3]}
+        scale={isMobile ? 1.02 : 1.12}
         color={c1}
         finish="satin"
-        speed={1.3}
-        rotation={[0.04, 0, -0.08]}
+        speed={1.35}
+        rotation={[0.04, 0, -0.06]}
         onPop={onPop}
-        interactive={true}
       />
       <FloatingBalloon
         geometry={balloonGeo}
-        position={[4.55, 1.35, -0.4]}
-        scale={0.95}
+        position={[1.95, 1.15, -0.35]}
+        scale={isMobile ? 0.84 : 0.94}
         color={c2}
         finish="satin"
-        speed={1.55}
+        speed={1.6}
         rotation={[-0.04, 0.18, 0.1]}
         onPop={onPop}
-        interactive={true}
       />
       <FloatingBalloon
         geometry={balloonGeo}
-        position={[0.65, 2.05, -1.1]}
-        scale={0.78}
+        position={[-1.95, 1.05, -0.45]}
+        scale={isMobile ? 0.8 : 0.88}
         color={c3}
         finish="pearl"
-        speed={1.2}
+        speed={1.25}
         rotation={[0.04, 0, -0.12]}
         onPop={onPop}
-        interactive={true}
       />
       <FloatingBalloon
         geometry={balloonGeo}
-        position={[4.65, -1.25, 0.45]}
-        scale={0.74}
+        position={[1.85, -1.25, 0.35]}
+        scale={isMobile ? 0.66 : 0.72}
         color={c5}
         finish="chrome"
-        speed={1.75}
+        speed={1.8}
         rotation={[0, 0, 0.12]}
         onPop={onPop}
-        interactive={true}
       />
       <FloatingBalloon
         geometry={balloonGeo}
-        position={[1.95, -1.85, 0.75]}
-        scale={0.62}
+        position={[-1.75, -1.25, 0.45]}
+        scale={isMobile ? 0.62 : 0.68}
         color={c4}
         finish="satin"
         speed={1.65}
         rotation={[0.05, 0, -0.1]}
         onPop={onPop}
-        interactive={true}
       />
 
-      {/* Ambient distant left-side balloons */}
-      <FloatingBalloon
-        geometry={balloonGeo}
-        position={[-4.85, 1.75, -2.4]}
-        scale={0.78}
-        color={c1}
-        finish="pearl"
-        speed={1.15}
-        rotation={[0, 0, 0.14]}
-        onPop={onPop}
-        interactive={true}
-      />
-      <FloatingBalloon
-        geometry={balloonGeo}
-        position={[-4.2, -1.85, -2.0]}
-        scale={0.6}
-        color={c5}
-        finish="chrome"
-        speed={1.45}
-        rotation={[0, 0, -0.1]}
-        onPop={onPop}
-        interactive={true}
-      />
+      {/* Extra user-spawned interactive balloons */}
+      {spawned.map((b) => (
+        <FloatingBalloon
+          key={b.id}
+          geometry={balloonGeo}
+          position={b.position}
+          scale={b.scale}
+          color={mood.swatches[b.colorIdx % mood.swatches.length]}
+          finish={b.finish}
+          speed={1.9}
+          onPop={onPop}
+        />
+      ))}
 
-      <Float speed={1.0} rotationIntensity={0.08} floatIntensity={0.2}>
-        <mesh position={[3.0, 0.15, -2.1]} rotation={[0.08, -0.18, 0]}>
-          <torusGeometry args={[2.6, 0.024, 12, 72]} />
+      {/* Soft gold decorative ring cleanly behind */}
+      <Float speed={1.0} rotationIntensity={0.08} floatIntensity={0.18}>
+        <mesh position={[0, 0.1, -1.75]} rotation={[0.08, -0.15, 0]}>
+          <torusGeometry args={[2.35, 0.028, 12, 68]} />
           <meshPhysicalMaterial color="#E5C691" metalness={0.82} roughness={0.2} />
         </mesh>
       </Float>
@@ -322,10 +241,11 @@ function SeamlessScene({
 
 interface Hero3DSceneProps {
   mood: BalloonMood
+  spawned: SpawnedBalloon[]
   onBalloonPop?: () => void
 }
 
-export default function Hero3DScene({ mood, onBalloonPop }: Hero3DSceneProps) {
+export default function Hero3DScene({ mood, spawned, onBalloonPop }: Hero3DSceneProps) {
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== 'undefined' ? window.innerWidth < 768 : false
   )
@@ -340,26 +260,26 @@ export default function Hero3DScene({ mood, onBalloonPop }: Hero3DSceneProps) {
   const handlePop = (color: string) => {
     onBalloonPop?.()
     confetti({
-      particleCount: 22,
+      particleCount: isMobile ? 16 : 24,
       spread: 56,
-      origin: { y: 0.45, x: 0.7 },
+      origin: { y: isMobile ? 0.62 : 0.48, x: isMobile ? 0.5 : 0.68 },
       colors: [color, '#FDEBED', '#162A4C', '#DFBE8A'],
-      scalar: 0.8,
-      ticks: 95,
+      scalar: 0.78,
+      ticks: 90,
     })
   }
 
   return (
     <Canvas
-      dpr={isMobile ? 1 : [1, 1.5]}
-      camera={{ position: [0, 0, isMobile ? 9.2 : 8.6], fov: isMobile ? 42 : 36 }}
-      gl={{ antialias: !isMobile, alpha: true, powerPreference: 'high-performance' }}
-      style={{ width: '100%', height: '100%', pointerEvents: isMobile ? 'none' : 'auto' }}
+      dpr={isMobile ? [1, 1.25] : [1, 1.5]}
+      camera={{ position: [0, 0, isMobile ? 7.6 : 7.2], fov: 38 }}
+      gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
+      style={{ width: '100%', height: '100%', touchAction: 'pan-y' }}
     >
       <ambientLight intensity={0.96} />
       <directionalLight position={[6, 8, 6]} intensity={1.25} color="#FFF9F7" />
-      <directionalLight position={[-6, 2, 5]} intensity={0.7} color="#FDEBED" />
-      {!isMobile && <pointLight position={[2, -4, 4]} intensity={0.48} color="#F3B6C1" />}
+      <directionalLight position={[-6, 2, 5]} intensity={0.72} color="#FDEBED" />
+      <pointLight position={[0, -4, 4]} intensity={0.45} color="#F3B6C1" />
 
       <Environment resolution={isMobile ? 64 : 128}>
         <Lightformer form="ring" intensity={2.1} position={[0, 6, 4]} scale={10} color="#FFFFFF" />
@@ -367,7 +287,12 @@ export default function Hero3DScene({ mood, onBalloonPop }: Hero3DSceneProps) {
         <Lightformer form="rect" intensity={1.5} position={[6, 3, 2]} scale={[6, 8, 1]} color="#FFF4E6" />
       </Environment>
 
-      <SeamlessScene mood={mood} isMobile={isMobile} onPop={handlePop} />
+      <InteractiveBalloonStage
+        mood={mood}
+        isMobile={isMobile}
+        spawned={spawned}
+        onPop={handlePop}
+      />
     </Canvas>
   )
 }

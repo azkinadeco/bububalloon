@@ -607,7 +607,7 @@ export default function FullscreenStudioPage({ initialPresetId }: FullscreenStud
   }
 
   return (
-    <div className="h-[100dvh] w-screen overflow-hidden flex flex-col bg-[#FAF3F5]">
+    <div className="fixed inset-0 h-[100dvh] w-screen overflow-hidden flex flex-col bg-[#FAF3F5]">
       {/* Top Fullscreen Studio Bar */}
       <header className="h-14 px-3 sm:px-4 bg-white border-b border-[#FDEBED] flex items-center justify-between gap-2 shrink-0 z-20">
         <div className="flex items-center gap-2 sm:gap-3">
@@ -1001,6 +1001,55 @@ export default function FullscreenStudioPage({ initialPresetId }: FullscreenStud
               )
             })}
           </div>
+
+          {/* iPhone Floating Quick Action Pill right below canvas when an element is selected */}
+          {selectedEl && !mobileSheet && (
+            <div className="lg:hidden mt-3 glass-pill rounded-full px-2.5 py-1.5 flex items-center gap-1.5 shadow-lg">
+              <button
+                type="button"
+                onClick={() => setMobileSheet('atur')}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#FDEBED] text-[11px] font-extrabold text-[#162A4C]"
+              >
+                <span
+                  className="w-3 h-3 rounded-full ring-1 ring-black/15"
+                  style={{ backgroundColor: selectedEl.color }}
+                />
+                Edit
+              </button>
+              <button
+                type="button"
+                onClick={() => updateSelected({ width: Math.max(6, selectedEl.width - 4) })}
+                className="w-7 h-7 rounded-full bg-white text-xs font-extrabold text-[#162A4C] border border-[#F2D5DC]"
+                title="Perkecil"
+              >
+                −
+              </button>
+              <button
+                type="button"
+                onClick={() => updateSelected({ width: Math.min(68, selectedEl.width + 4) })}
+                className="w-7 h-7 rounded-full bg-white text-xs font-extrabold text-[#162A4C] border border-[#F2D5DC]"
+                title="Perbesar"
+              >
+                +
+              </button>
+              <button
+                type="button"
+                onClick={duplicateSelected}
+                className="w-7 h-7 rounded-full bg-white text-[#162A4C] border border-[#F2D5DC] flex items-center justify-center"
+                title="Duplikat"
+              >
+                <Copy className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={deleteSelected}
+                className="w-7 h-7 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center"
+                title="Hapus"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
         </main>
 
         {/* Desktop Right Inspector (hidden on mobile — replaced by iPhone Bottom Sheet!) */}
