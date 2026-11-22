@@ -13,6 +13,348 @@
   },
   "models": [
     {
+      "id": "pkg-1795337324461",
+      "name": "One Panel Simple Package",
+      "category": "Ulang Tahun",
+      "tag": "Baru",
+      "size": "2x1",
+      "description": "Dekorasi hemat paket simple 2x1m , lebar dekorasi keseluruhan 1,5-2m",
+      "image": "",
+      "colors": [
+        "#FFE599",
+        "#f7f6d7",
+        "#efe295",
+        "#1E2430"
+      ],
+      "includes": [
+        "Lampu Sorot Bawah",
+        "Oval 1",
+        "5×0",
+        "9m",
+        "Balon Cluster",
+        "Balon Angka 0-9",
+        "Foil Bintang"
+      ],
+      "studioPresetId": "bubu-signature",
+      "customStudioElements": [
+        {
+          "id": "el-1795337262170-hz6j",
+          "type": "uplight-spot",
+          "x": 29.516806722689076,
+          "y": 76.73109243697479,
+          "width": 16,
+          "rotation": 50,
+          "color": "#FFE599",
+          "secondaryColor": "#FFE599"
+        },
+        {
+          "id": "el-1795336788996-ph1g",
+          "type": "arch-panel-small",
+          "x": 51.890756302521005,
+          "y": 54.69747899159664,
+          "width": 21.54936974789916,
+          "rotation": 0,
+          "color": "#f7f6d7",
+          "secondaryColor": "#FDEBED"
+        },
+        {
+          "id": "el-1795336831428-4y3v",
+          "type": "balloon-cluster",
+          "x": 39.600840336134446,
+          "y": 74.33613445378151,
+          "width": 10.384453781512606,
+          "rotation": 0,
+          "color": "#efe295",
+          "secondaryColor": "#efe295"
+        },
+        {
+          "id": "el-1795336936934",
+          "type": "balloon-cluster",
+          "x": 40.02941176470588,
+          "y": 65.73109243697479,
+          "width": 10.384453781512606,
+          "rotation": 0,
+          "color": "#efe295",
+          "secondaryColor": "#efe295"
+        },
+        {
+          "id": "el-1795336941843",
+          "type": "balloon-cluster",
+          "x": 39.82773109243697,
+          "y": 57.46218487394958,
+          "width": 10.384453781512606,
+          "rotation": 0,
+          "color": "#1E2430",
+          "secondaryColor": "#1E2430"
+        },
+        {
+          "id": "el-1795336962045",
+          "type": "balloon-cluster",
+          "x": 40.57142857142856,
+          "y": 48.18487394957983,
+          "width": 10.384453781512606,
+          "rotation": 0,
+          "color": "#1E2430",
+          "secondaryColor": "#1E2430"
+        },
+        {
+          "id": "el-1795336980166",
+          "type": "balloon-cluster",
+          "x": 41.81512605042016,
+          "y": 39.5126050420168,
+          "width": 10.384453781512606,
+          "rotation": 0,
+          "color": "#efe295",
+          "secondaryColor": "#efe295"
+        },
+        {
+          "id": "el-1795336983680",
+          "type": "balloon-cluster",
+          "x": 45.60504201680671,
+          "y": 31.243697478991592,
+          "width": 10.384453781512606,
+          "rotation": 0,
+          "color": "#efe295",
+          "secondaryColor": "#efe295"
+        },
+        {
+          "id": "el-1795336987952",
+          "type": "balloon-cluster",
+          "x": 50,
+          "y": 28.85714285714286,
+          "width": 10.384453781512606,
+          "rotation": 0,
+          "color": "#1E2430",
+          "secondaryColor": "#1E2430"
+        },
+        {
+          "id": "el-1795337003713",
+          "type": "balloon-cluster",
+          "x": 54.73529411764706,
+          "y": 30.16806722689076,
+          "width": 6.728991596638657,
+          "rotation": 0,
+          "color": "#1E2430",
+          "secondaryColor": "#1E2430"
+        },
+        {
+          "id": "el-1795337010890",
+          "type": "balloon-cluster",
+          "x": 33.62184873949579,
+          "y": 75.14285714285714,
+          "width": 9.775210084033615,
+          "rotation": 0,
+          "color": "#efe295",
+          "secondaryColor": "#efe295"
+        },
+        {
+          "id": "el-1795337017058",
+          "type": "balloon-cluster",
+          "x": 35.626050420168056,
+          "y": 68.05042016806722,
+          "width": 7.490546218487397,
+          "rotation": 0,
+          "color": "#efe295",
+          "secondaryColor": "#efe295"
+        },
+        {
+          "id": "el-1795337024882",
+          "type": "balloon-cluster",
+          "x": 43.617647058823515,
+          "y": 60.789915966386545,
+          "width": 7.490546218487397,
+          "rotation": 0,
+          "color": "#efe295",
+          "secondaryColor": "#efe295"
+        },
+        {
+          "id": "el-1795337029474",
+          "type": "balloon-cluster",
+          "x": 36.159663865546214,
+          "y": 52.21848739495798,
+          "width": 7.642857142857144,
+          "rotation": 0,
+          "color": "#1E2430",
+          "secondaryColor": "#1E2430"
+        },
+        {
+          "id": "el-1795337046627",
+          "type": "balloon-cluster",
+          "x": 40.36974789915965,
+          "y": 31.848739495798313,
+          "width": 7.490546218487397,
+          "rotation": 0,
+          "color": "#efe295",
+          "secondaryColor": "#efe295"
+        },
+        {
+          "id": "el-1795337053330",
+          "type": "balloon-cluster",
+          "x": 62.298319327731086,
+          "y": 76.65546218487395,
+          "width": 10.384453781512606,
+          "rotation": 0,
+          "color": "#efe295",
+          "secondaryColor": "#efe295"
+        },
+        {
+          "id": "el-1795337056450",
+          "type": "balloon-cluster",
+          "x": 62.306722689075634,
+          "y": 68.5546218487395,
+          "width": 8.556722689075631,
+          "rotation": 0,
+          "color": "#efe295",
+          "secondaryColor": "#efe295"
+        },
+        {
+          "id": "el-1795337075628",
+          "type": "balloon-cluster",
+          "x": 67.68067226890756,
+          "y": 77.73109243697478,
+          "width": 7.490546218487397,
+          "rotation": 0,
+          "color": "#efe295",
+          "secondaryColor": "#efe295"
+        },
+        {
+          "id": "el-1795337078827",
+          "type": "balloon-cluster",
+          "x": 65.3781512605042,
+          "y": 72.31932773109243,
+          "width": 7.490546218487397,
+          "rotation": 0,
+          "color": "#efe295",
+          "secondaryColor": "#efe295"
+        },
+        {
+          "id": "el-1795337085604-xjeu",
+          "type": "number-balloon",
+          "x": 61.97478991596638,
+          "y": 58.37956204379562,
+          "width": 8.367647058823529,
+          "rotation": 0,
+          "color": "#162A4C",
+          "secondaryColor": "#DFBE8A",
+          "text": "1"
+        },
+        {
+          "id": "el-1795337119256-xs3v",
+          "type": "foil-star",
+          "x": 33.92857142857143,
+          "y": 65.26050420168067,
+          "width": 6,
+          "rotation": 0,
+          "color": "#162A4C",
+          "secondaryColor": "#DFBE8A"
+        },
+        {
+          "id": "el-1795337126020",
+          "type": "foil-star",
+          "x": 42.23529411764706,
+          "y": 73.29411764705883,
+          "width": 6,
+          "rotation": 0,
+          "color": "#162A4C",
+          "secondaryColor": "#DFBE8A"
+        },
+        {
+          "id": "el-1795337128845",
+          "type": "foil-star",
+          "x": 64.5126050420168,
+          "y": 73.42857142857143,
+          "width": 6,
+          "rotation": 0,
+          "color": "#162A4C",
+          "secondaryColor": "#DFBE8A"
+        },
+        {
+          "id": "el-1795337132118",
+          "type": "foil-star",
+          "x": 41.2016806722689,
+          "y": 50,
+          "width": 6,
+          "rotation": 0,
+          "color": "#f0f7b4",
+          "secondaryColor": "#DFBE8A"
+        },
+        {
+          "id": "el-1795337151286",
+          "type": "foil-star",
+          "x": 52.344537815126046,
+          "y": 27.445378151260503,
+          "width": 6,
+          "rotation": 0,
+          "color": "#f0f7b4",
+          "secondaryColor": "#DFBE8A"
+        },
+        {
+          "id": "el-1795337156462",
+          "type": "foil-star",
+          "x": 42.45378151260504,
+          "y": 34.60504201680673,
+          "width": 6,
+          "rotation": 0,
+          "color": "#162A4C",
+          "secondaryColor": "#DFBE8A"
+        },
+        {
+          "id": "el-1795337164707-6btu",
+          "type": "custom-text",
+          "x": 52.205882352941174,
+          "y": 40.72268907563025,
+          "width": 13.185924369747898,
+          "rotation": 0,
+          "color": "#162A4C",
+          "secondaryColor": "#162A4C",
+          "text": "Happy Birthday"
+        },
+        {
+          "id": "el-1795337173126",
+          "type": "custom-text",
+          "x": 52.310924369747895,
+          "y": 43.714285714285715,
+          "width": 13.185924369747898,
+          "rotation": 0,
+          "color": "#162A4C",
+          "secondaryColor": "#162A4C",
+          "text": "Angeline Floren",
+          "fontFamily": "playfair"
+        },
+        {
+          "id": "el-1795337222685-q8aj",
+          "type": "cylinder-fluted-60x25",
+          "x": 51.99579831932773,
+          "y": 75.00840336134453,
+          "width": 6,
+          "rotation": 0,
+          "color": "#FFFDFC",
+          "secondaryColor": "#FFFDFC"
+        },
+        {
+          "id": "el-1795337228910-1zo1",
+          "type": "ribbon-cake",
+          "x": 52.10084033613445,
+          "y": 61.563025210084035,
+          "width": 6.519957983193278,
+          "rotation": 0,
+          "color": "#F7E6B5",
+          "secondaryColor": "#FDEBED"
+        },
+        {
+          "id": "el-1795337269441",
+          "type": "uplight-spot",
+          "x": 70.38655462184875,
+          "y": 77.36974789915968,
+          "width": 16,
+          "rotation": -49,
+          "color": "#FFE599",
+          "secondaryColor": "#FFE599"
+        }
+      ],
+      "customStudioBgId": "resto"
+    },
+    {
       "id": "pkg-1795331295442",
       "name": "Shimmer Red Backdrop Sweet 17",
       "category": "Ulang Tahun",
