@@ -91,6 +91,20 @@ export function ModelShowcaseSection() {
         </div>
 
         {/* Dribbble Horizontal Snap Carousel on iPhone -> Clean 2-Col Grid on Desktop */}
+        {filtered.length === 0 ? (
+          <div className="rounded-[2rem] bg-white/90 border border-[#F2D5DC]/70 p-10 text-center space-y-3 soft-shadow">
+            <p className="text-sm font-bold text-[#162A4C]/70">
+              Belum ada paket pada kategori &ldquo;{activeCategory}&rdquo;.
+            </p>
+            <button
+              type="button"
+              onClick={() => setActiveCategory('Semua')}
+              className="px-5 py-2.5 rounded-full bg-[#162A4C] text-white text-xs font-extrabold cursor-pointer hover:bg-[#243E6B] transition-colors"
+            >
+              Lihat Semua Paket
+            </button>
+          </div>
+        ) : (
         <div className="flex md:grid md:grid-cols-2 gap-4 sm:gap-7 overflow-x-auto md:overflow-visible snap-x snap-mandatory no-scrollbar -mx-4 px-4 md:mx-0 md:px-0 pb-4 md:pb-0">
           {filtered.map((model, idx) => (
             <motion.article
@@ -187,10 +201,13 @@ export function ModelShowcaseSection() {
             </motion.article>
           ))}
         </div>
+        )}
 
-        <p className="md:hidden text-center text-[11px] font-bold text-[#162A4C]/45 mt-1">
-          ← Geser ke samping untuk lihat paket lainnya →
-        </p>
+        {filtered.length > 1 && (
+          <p className="md:hidden text-center text-[11px] font-bold text-[#162A4C]/45 mt-1">
+            ← Geser ke samping untuk lihat paket lainnya →
+          </p>
+        )}
       </div>
 
       {/* Spec Detail Modal */}

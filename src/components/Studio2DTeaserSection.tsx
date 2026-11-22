@@ -1,8 +1,12 @@
 import { motion } from 'framer-motion'
 import { Sparkles, ArrowUpRight, Layers, Upload, Download } from 'lucide-react'
 import { StudioPresetPreview } from './Studio2D/stickerLibrary'
+import { useSiteConfig } from '../context/SiteConfigContext'
 
 export function Studio2DTeaserSection() {
+  const { config } = useSiteConfig()
+  const featuredModel = config.models[0]
+
   return (
     <section className="py-16 sm:py-20 px-4 sm:px-6">
       <div className="mx-auto max-w-6xl">
@@ -67,7 +71,9 @@ export function Studio2DTeaserSection() {
               >
                 <div className="aspect-[16/10] rounded-[1.25rem] overflow-hidden relative bg-[#FFF5F7]">
                   <StudioPresetPreview
-                    presetId="sweet-17-glow"
+                    presetId={featuredModel?.studioPresetId || 'sweet-17-glow'}
+                    customElements={featuredModel?.customStudioElements}
+                    customBgId={featuredModel?.customStudioBgId}
                     className="group-hover:scale-105 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 bg-[#162A4C]/12 group-hover:bg-transparent transition-colors flex items-center justify-center">
