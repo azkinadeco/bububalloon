@@ -96,9 +96,9 @@ export const ROOM_BACKGROUNDS: RoomBackground[] = [
  * Scale reference: 2m = ~32% canvas width, 1m = ~16% canvas width.
  */
 export const STICKER_DEFINITIONS: StickerDefinition[] = [
-  // Backdrop
-  { type: 'arch-panel', label: 'Oval 2×1m', category: 'Backdrop', defaultColor: '#FFFDFC', defaultWidth: 18, supportsBanner: true },
-  { type: 'arch-panel-small', label: 'Oval 1,5×0,9m', category: 'Backdrop', defaultColor: '#FDEBED', defaultWidth: 16, supportsBanner: true },
+  // Backdrop (exact real-world scale: 2.0m = 32% width, 1.0m = 16.8% width, 0.9m = 15% width)
+  { type: 'arch-panel', label: 'Oval 2×1m', category: 'Backdrop', defaultColor: '#FFFDFC', defaultWidth: 16.8, supportsBanner: true },
+  { type: 'arch-panel-small', label: 'Oval 1,5×0,9m', category: 'Backdrop', defaultColor: '#FDEBED', defaultWidth: 15, supportsBanner: true },
   { type: 'double-arch', label: 'Double Oval', category: 'Backdrop', defaultColor: '#FFFDFC', defaultSecondary: '#FDEBED', defaultWidth: 32, supportsBanner: true },
   { type: 'scallop-arch', label: 'Arch Gelombang', category: 'Backdrop', defaultColor: '#FDEBED', defaultWidth: 22, supportsBanner: true },
   { type: 'circle-backdrop', label: 'Bulat 2×2m', category: 'Backdrop', defaultColor: '#FFFDFC', defaultWidth: 32, supportsBanner: true },
@@ -141,14 +141,14 @@ export const STUDIO_PRESETS: StudioPreset[] = [
     backgroundId: 'blush',
     elements: [
       { id: 's0', type: 'uplight-spot', x: 50, y: 69, width: 22, rotation: 0, color: '#FFE5A3' },
-      { id: 's1', type: 'arch-panel', x: 46, y: 50, width: 20, rotation: 0, color: '#FFFDFC' },
-      { id: 's2', type: 'arch-panel-small', x: 59, y: 56, width: 17, rotation: 0, color: '#FDEBED' },
-      { id: 's3', type: 'garland-arch', x: 49, y: 36, width: 45, rotation: 0, color: '#F2B3BD', secondaryColor: '#162A4C' },
-      { id: 's4', type: 'custom-text', x: 46, y: 45, width: 22, rotation: 0, color: '#162A4C', text: 'Happy Birthday' },
-      { id: 's5', type: 'ribbon-bow', x: 68, y: 52, width: 10, rotation: 8, color: '#EFAAB6' },
-      { id: 's6', type: 'cylinder-fluted-80x40', x: 50, y: 71, width: 12, rotation: 0, color: '#FFFDFC' },
-      { id: 's7', type: 'ribbon-cake', x: 50, y: 54, width: 8.5, rotation: 0, color: '#FDEBED' },
-      { id: 's8', type: 'balloon-cluster', x: 30, y: 72, width: 16, rotation: -4, color: '#F2B3BD', secondaryColor: '#162A4C' },
+      { id: 's1', type: 'arch-panel', x: 46, y: 53, width: 16.8, rotation: 0, color: '#FFFDFC' },
+      { id: 's2', type: 'arch-panel-small', x: 58, y: 59, width: 15, rotation: 0, color: '#FDEBED' },
+      { id: 's3', type: 'garland-arch', x: 49, y: 39, width: 42, rotation: 0, color: '#F2B3BD', secondaryColor: '#162A4C' },
+      { id: 's4', type: 'custom-text', x: 46, y: 47, width: 20, rotation: 0, color: '#162A4C', text: 'Happy Birthday' },
+      { id: 's5', type: 'ribbon-bow', x: 66, y: 54, width: 9.5, rotation: 8, color: '#EFAAB6' },
+      { id: 's6', type: 'cylinder-fluted-80x40', x: 50, y: 71, width: 11.5, rotation: 0, color: '#FFFDFC' },
+      { id: 's7', type: 'ribbon-cake', x: 50, y: 55, width: 8, rotation: 0, color: '#FDEBED' },
+      { id: 's8', type: 'balloon-cluster', x: 31, y: 72, width: 15.5, rotation: -4, color: '#F2B3BD', secondaryColor: '#162A4C' },
     ],
   },
   {
@@ -170,14 +170,14 @@ export const STUDIO_PRESETS: StudioPreset[] = [
     name: 'Teddy Pastel Cloud',
     backgroundId: 'living-room',
     elements: [
-      { id: 'p1', type: 'arch-panel', x: 44, y: 50, width: 20, rotation: 0, color: '#FFFDFC' },
-      { id: 'p2', type: 'arch-panel-small', x: 58, y: 56, width: 17, rotation: 0, color: '#BFDDF0' },
-      { id: 'p3', type: 'garland-arch', x: 50, y: 35, width: 45, rotation: 0, color: '#BFDDF0', secondaryColor: '#F7E6B5' },
-      { id: 'p4', type: 'custom-text', x: 56, y: 48, width: 20, rotation: 0, color: '#162A4C', text: 'Baby Theo 1st' },
-      { id: 'p5', type: 'cylinder-fluted-80x40', x: 42, y: 71, width: 11.5, rotation: 0, color: '#FFFDFC' },
-      { id: 'p6', type: 'teddy-bear', x: 42, y: 53, width: 10, rotation: 0, color: '#D8AD86' },
-      { id: 'p7', type: 'cylinder-fluted-60x25', x: 64, y: 74, width: 7.2, rotation: 0, color: '#F7E6B5' },
-      { id: 'p8', type: 'balloon-cluster', x: 72, y: 72, width: 15, rotation: 6, color: '#F2B3BD', secondaryColor: '#F7E6B5' },
+      { id: 'p1', type: 'arch-panel', x: 45, y: 53, width: 16.8, rotation: 0, color: '#FFFDFC' },
+      { id: 'p2', type: 'arch-panel-small', x: 57, y: 59, width: 15, rotation: 0, color: '#BFDDF0' },
+      { id: 'p3', type: 'garland-arch', x: 50, y: 38, width: 42, rotation: 0, color: '#BFDDF0', secondaryColor: '#F7E6B5' },
+      { id: 'p4', type: 'custom-text', x: 56, y: 50, width: 19, rotation: 0, color: '#162A4C', text: 'Baby Theo 1st' },
+      { id: 'p5', type: 'cylinder-fluted-80x40', x: 42, y: 71, width: 11, rotation: 0, color: '#FFFDFC' },
+      { id: 'p6', type: 'teddy-bear', x: 42, y: 54, width: 9.5, rotation: 0, color: '#D8AD86' },
+      { id: 'p7', type: 'cylinder-fluted-60x25', x: 63, y: 74, width: 7.2, rotation: 0, color: '#F7E6B5' },
+      { id: 'p8', type: 'balloon-cluster', x: 71, y: 72, width: 15, rotation: 6, color: '#F2B3BD', secondaryColor: '#F7E6B5' },
     ],
   },
   {
@@ -467,52 +467,52 @@ export function StickerSVG({ element }: { element: CanvasElement }): React.React
       )
 
     case 'arch-panel':
-      // True 2m tall × 1m wide Oval/Arch Panel (1:2 proportion)
+      // Exact 2.0m total height (INCLUDING top semicircle r=50) × 1.0m width (100×200 inner)
       return (
-        <svg viewBox="0 0 110 220" className="w-full h-full drop-shadow-sm">
+        <svg viewBox="0 0 116 216" className="w-full h-full drop-shadow-sm">
           <defs>
             <clipPath id={clipId}>
-              <path d="M8 214 V55 A47 47 0 0 1 102 55 V214 Z" />
+              <path d="M8 208 V58 A50 50 0 0 1 108 58 V208 Z" />
             </clipPath>
           </defs>
-          <path d="M8 214 V55 A47 47 0 0 1 102 55 V214 Z" fill={color} stroke="#162A4C" strokeOpacity="0.14" strokeWidth="2.5" />
+          <path d="M8 208 V58 A50 50 0 0 1 108 58 V208 Z" fill={color} stroke="#162A4C" strokeOpacity="0.14" strokeWidth="2.5" />
           {customImageUrl && (
             <image
               href={customImageUrl}
               x="8"
               y="8"
-              width="94"
-              height="206"
+              width="100"
+              height="200"
               preserveAspectRatio="xMidYMid slice"
               clipPath={`url(#${clipId})`}
             />
           )}
-          <path d="M8 214 V55 A47 47 0 0 1 102 55 V214 Z" fill="none" stroke="#162A4C" strokeOpacity="0.14" strokeWidth="2.5" />
+          <path d="M8 208 V58 A50 50 0 0 1 108 58 V208 Z" fill="none" stroke="#162A4C" strokeOpacity="0.14" strokeWidth="2.5" />
         </svg>
       )
 
     case 'arch-panel-small':
-      // True 1.5m tall × 0.9m wide Small Oval/Arch Panel (3:5 proportion)
+      // Exact 1.5m total height (INCLUDING top semicircle r=45) × 0.9m width (90×150 inner)
       return (
-        <svg viewBox="0 0 108 180" className="w-full h-full drop-shadow-sm">
+        <svg viewBox="0 0 106 166" className="w-full h-full drop-shadow-sm">
           <defs>
             <clipPath id={clipId}>
-              <path d="M8 174 V54 A46 46 0 0 1 100 54 V174 Z" />
+              <path d="M8 158 V53 A45 45 0 0 1 98 53 V158 Z" />
             </clipPath>
           </defs>
-          <path d="M8 174 V54 A46 46 0 0 1 100 54 V174 Z" fill={color} stroke="#162A4C" strokeOpacity="0.14" strokeWidth="2.5" />
+          <path d="M8 158 V53 A45 45 0 0 1 98 53 V158 Z" fill={color} stroke="#162A4C" strokeOpacity="0.14" strokeWidth="2.5" />
           {customImageUrl && (
             <image
               href={customImageUrl}
               x="8"
               y="8"
-              width="92"
-              height="166"
+              width="90"
+              height="150"
               preserveAspectRatio="xMidYMid slice"
               clipPath={`url(#${clipId})`}
             />
           )}
-          <path d="M8 174 V54 A46 46 0 0 1 100 54 V174 Z" fill="none" stroke="#162A4C" strokeOpacity="0.14" strokeWidth="2.5" />
+          <path d="M8 158 V53 A45 45 0 0 1 98 53 V158 Z" fill="none" stroke="#162A4C" strokeOpacity="0.14" strokeWidth="2.5" />
         </svg>
       )
 
