@@ -37,6 +37,7 @@ import {
   ZoomIn,
   ZoomOut,
   Palette,
+  MoveDiagonal2,
 } from 'lucide-react'
 import { DEFAULT_GITHUB_REPO } from '../../lib/githubSync'
 import {
@@ -273,6 +274,7 @@ export default function FullscreenStudioPage({
     centerY: number
     startAngle: number
   } | null>(null)
+  const justDraggedRef = useRef(false)
 
   const pinchRef = useRef<{
     startDist: number
@@ -745,6 +747,10 @@ export default function FullscreenStudioPage({
   const handleStagePointerUp = () => {
     if (!dragStateRef.current) return
     dragStateRef.current = null
+    justDraggedRef.current = true
+    window.setTimeout(() => {
+      justDraggedRef.current = false
+    }, 80)
     setSnapGuide({ x: false, y: false })
     commitElements(elements)
   }
@@ -899,7 +905,6 @@ export default function FullscreenStudioPage({
     type === 'balloon-cluster' ||
     type === 'double-arch' ||
     type === 'gold-cross-table' ||
-    type === 'fabric-drape' ||
     type === 'welcome-sign' ||
     type === 'standing-flower'
 
@@ -932,8 +937,7 @@ export default function FullscreenStudioPage({
         el.type === 'square-backdrop-2x2' ||
         el.type === 'square-backdrop-2x3' ||
         el.type === 'double-arch' ||
-        el.type === 'scallop-arch' ||
-        el.type === 'fabric-drape'
+        el.type === 'scallop-arch'
       ) {
         return {
           ...el,
@@ -1008,9 +1012,9 @@ export default function FullscreenStudioPage({
                   key={def.type}
                   type="button"
                   onClick={() => addSticker(def)}
-                  className="group p-2 rounded-2xl bg-white border border-[#F2D5DC]/65 hover:border-[#162A4C]/45 active:scale-95 transition-all flex flex-col items-center gap-1 cursor-pointer"
+                  className="group p-2.5 rounded-2xl bg-white border border-[#F2D5DC]/75 hover:border-[#162A4C]/50 hover:shadow-xs active:scale-95 transition-all flex flex-col items-center gap-1.5 cursor-pointer"
                 >
-                  <div className="w-11 h-11 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <div className="w-12 h-12 flex items-center justify-center group-hover:scale-105 transition-transform">
                     <StickerSVG
                       element={{
                         id: `lib-${def.type}`,
@@ -1539,6 +1543,7 @@ export default function FullscreenStudioPage({
               onPointerUp={handleStagePointerUp}
               onPointerCancel={handleStagePointerUp}
               onClick={() => {
+                if (justDraggedRef.current) return
                 setSelectedId(null)
                 setMobileSheet(null)
                 setLayersPopoverOpen(false)
@@ -1633,23 +1638,25 @@ export default function FullscreenStudioPage({
 
                     {isSelected && (
                       <>
-                        {/* Direct On-Canvas Rotate Handle (top center) */}
+                        {/* Direct On-Canvas Rotate Handle (top center — easy thumb grab!) */}
                         <button
                           type="button"
                           aria-label="Putar"
                           onPointerDown={(e) => handleElementPointerDown(e, el, 'rotate')}
-                          className="absolute -top-8 left-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-white border-2 border-[#162A4C] text-[#162A4C] shadow-md flex items-center justify-center cursor-grab"
+                          className="absolute -top-9 left-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-white border-2 border-[#162A4C] text-[#162A4C] shadow-md flex items-center justify-center cursor-grab active:scale-110 transition-transform"
                         >
-                          <RotateCw className="w-3 h-3" />
+                          <RotateCw className="w-3.5 h-3.5" />
                         </button>
 
-                        {/* Large Touch-Friendly Resize Handle (bottom right) */}
+                        {/* Large Touch-Friendly Resize Handle (bottom right with clear arrow icon!) */}
                         <button
                           type="button"
                           aria-label="Ubah Ukuran"
                           onPointerDown={(e) => handleElementPointerDown(e, el, 'resize')}
-                          className="absolute -right-3 -bottom-3 w-6 h-6 rounded-full bg-[#162A4C] border-2 border-white shadow-md cursor-nwse-resize"
-                        />
+                          className="absolute -right-3.5 -bottom-3.5 w-7 h-7 rounded-full bg-[#162A4C] border-2 border-white text-white shadow-md flex items-center justify-center cursor-nwse-resize active:scale-110 transition-transform"
+                        >
+                          <MoveDiagonal2 className="w-3.5 h-3.5" />
+                        </button>
                       </>
                     )}
                   </div>
@@ -1665,10 +1672,13 @@ export default function FullscreenStudioPage({
             className="w-full max-w-5xl mt-2.5 shrink-0 relative z-30"
           >
             {selectedEl ? (
-              <div className="glass-card rounded-2xl px-3.5 py-2.5 space-y-2">
-                {/* Row 1: Actions + Banner / Text / Font / Digit Picker + Quick Size */}
+              <div className="glass-card rounded-2xl px-3.5 py-2.5 space-y-2 shadow-lg">
+                {/* Row 1: Selected Element Name + Actions + Text / Banner / Quick Size */}
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 flex-wrap">
+                    <span className="hidden sm:inline-flex items-center px-2.5 py-1 rounded-full bg-[#FDEBED] text-[10px] font-extrabold text-[#162A4C] mr-1">
+                      {getElementDisplayName(selectedEl)}
+                    </span>
                     <button
                       type="button"
                       onClick={() => updateSelected({ x: 50 })}
@@ -1831,7 +1841,7 @@ export default function FullscreenStudioPage({
                           key={digit}
                           type="button"
                           onClick={() => updateSelected({ text: digit })}
-                          className={`w-7 h-7 rounded-full text-xs font-extrabold shrink-0 cursor-pointer transition-all ${
+                          className={`w-8 h-8 rounded-full text-xs font-extrabold shrink-0 cursor-pointer transition-all ${
                             active
                               ? 'bg-[#162A4C] text-white shadow-xs scale-105'
                               : 'bg-[#FFF5F7] text-[#162A4C] hover:bg-[#FDEBED]'
@@ -1869,17 +1879,17 @@ export default function FullscreenStudioPage({
                         </button>
                       </div>
                     )}
-                    <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1.5 px-1.5">
+                    <div className="flex items-center gap-2.5 overflow-x-auto no-scrollbar py-1.5 px-1.5">
                       {/* Custom Full-Spectrum Color Picker */}
                       <label
                         title="Pilih Warna Sendiri (Custom)"
-                        className="relative w-6 h-6 rounded-full shrink-0 cursor-pointer ring-1 ring-black/20 hover:scale-105 transition-transform flex items-center justify-center overflow-hidden"
+                        className="relative w-7 h-7 rounded-full shrink-0 cursor-pointer ring-1 ring-black/20 hover:scale-105 transition-transform flex items-center justify-center overflow-hidden"
                         style={{
                           background:
                             'conic-gradient(#ff6b6b, #ffd93d, #6bcb77, #4d96ff, #9d65c9, #ff6b6b)',
                         }}
                       >
-                        <span className="w-2 h-2 rounded-full bg-white shadow-xs" />
+                        <span className="w-2.5 h-2.5 rounded-full bg-white shadow-xs" />
                         <input
                           type="color"
                           value={
@@ -1902,7 +1912,7 @@ export default function FullscreenStudioPage({
                             type="button"
                             title={swatch.name}
                             onClick={() => handleApplyColor(swatch.hex)}
-                            className={`w-6 h-6 rounded-full shrink-0 transition-transform cursor-pointer ${
+                            className={`w-7 h-7 rounded-full shrink-0 transition-transform cursor-pointer ${
                               isPicked
                                 ? 'ring-2 ring-offset-2 ring-[#162A4C] scale-105'
                                 : 'ring-1 ring-black/15 hover:scale-105'

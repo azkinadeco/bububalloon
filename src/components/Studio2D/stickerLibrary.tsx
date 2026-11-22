@@ -29,7 +29,6 @@ export type StickerType =
   | 'floral-bouquet'
   | 'jumbo-balloon'
   | 'number-balloon'
-  | 'fabric-drape'
   | 'welcome-sign'
   | 'standing-flower'
   | 'custom-png'
@@ -128,7 +127,6 @@ export const STICKER_DEFINITIONS: StickerDefinition[] = [
   { type: 'square-backdrop-2x2', label: 'Kotak 2×2m', category: 'Backdrop', defaultColor: '#FFFDFC', defaultWidth: 32, supportsBanner: true },
   { type: 'square-backdrop-2x3', label: 'Kotak 2×3m', category: 'Backdrop', defaultColor: '#FFFDFC', defaultWidth: 46, supportsBanner: true },
   { type: 'sequin-wall-2x2', label: 'Shimmer 2×2m', category: 'Backdrop', defaultColor: '#DFBE8A', defaultWidth: 32 },
-  { type: 'fabric-drape', label: 'Tirai Kain 2×3m', category: 'Backdrop', defaultColor: '#FFF8F9', defaultSecondary: '#EFAAB6', defaultWidth: 46 },
 
   // Balon (default 1 warna seragam, bebas diubah warna)
   { type: 'garland-arch', label: 'Garland Lengkung', category: 'Balon', defaultColor: '#F2B3BD', defaultSecondary: '#F2B3BD', defaultWidth: 42 },
@@ -1157,33 +1155,6 @@ export function StickerSVG({ element }: { element: CanvasElement }): React.React
           <circle cx="60" cy="41" r="9" fill={light} opacity="0.75" />
           <circle cx="44" cy="58" r="7" fill="#FFFDFC" opacity="0.45" />
           <circle cx="60" cy="90" r="5" fill="#EFAAB6" />
-        </svg>
-      )
-    }
-
-    case 'fabric-drape': {
-      // Soft pleated sheer/satin 2×3m drapery curtain backdrop with studio folds & warm fairy shimmer
-      const foldDark = shadeHex(color, -12)
-      const foldLight = shadeHex(color, 10)
-      const accent = secondaryColor || '#EFAAB6'
-      return (
-        <svg viewBox="0 0 300 200" className="w-full h-full drop-shadow-md">
-          <rect x="6" y="8" width="288" height="186" rx="4" fill={color} stroke="#162A4C" strokeOpacity="0.1" strokeWidth="1.5" />
-          {[22, 46, 70, 94, 118, 142, 166, 190, 214, 238, 262, 282].map((x, idx) => (
-            <rect
-              key={x}
-              x={x - 10}
-              y="10"
-              width="12"
-              height="182"
-              fill={idx % 2 === 0 ? foldDark : foldLight}
-              opacity={idx % 2 === 0 ? 0.35 : 0.45}
-            />
-          ))}
-          {/* Top curtain crossbar & tieback swag */}
-          <rect x="4" y="6" width="292" height="6" rx="3" fill={accent} opacity="0.85" />
-          <path d="M8 12 Q80 42 150 18 Q220 42 292 12" fill="none" stroke={accent} strokeWidth="3.5" opacity="0.55" />
-          <path d="M6 194 H294" stroke={foldDark} strokeWidth="2" opacity="0.4" />
         </svg>
       )
     }
