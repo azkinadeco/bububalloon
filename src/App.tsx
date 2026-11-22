@@ -3,9 +3,9 @@ import { SiteConfigProvider } from './context/SiteConfigContext'
 import { Navbar } from './components/Navbar'
 import { ScrollProgressBar, BrandMarqueeStrip } from './components/ScrollProgressAndMarquee'
 import { HeroSection } from './components/HeroSection'
-import { HowToOrderSection } from './components/HowToOrderSection'
 import { ModelShowcaseSection } from './components/ModelShowcaseSection'
 import { Studio2DTeaserSection } from './components/Studio2DTeaserSection'
+import { HowToOrderSection } from './components/HowToOrderSection'
 import { PortfolioSection } from './components/PortfolioSection'
 import { Footer } from './components/Footer'
 import { SettingsDrawer } from './components/SettingsDrawer'
@@ -15,7 +15,6 @@ const FullscreenStudioPage = lazy(() => import('./components/Studio2D/Fullscreen
 function AppContent() {
   const [settingsOpen, setSettingsOpen] = useState(false)
 
-  // Check if opened in dedicated Fullscreen 2D Studio tab (?studio=1)
   const params = new URLSearchParams(window.location.search)
   const isStudioMode = params.get('studio') === '1'
   const presetParam = params.get('preset')
@@ -45,13 +44,20 @@ function AppContent() {
       <ScrollProgressBar />
       <Navbar onOpenSettings={() => setSettingsOpen(true)} />
       <main className="flex-1">
+        {/* 1. Hero 3D Balon */}
         <HeroSection />
+        {/* 2. Tipe-tipe dekor berjalan (vidiotron marquee) */}
         <BrandMarqueeStrip />
-        <HowToOrderSection />
+        {/* 3. Katalog Paket */}
         <ModelShowcaseSection />
+        {/* 4. Simulasi 2D */}
         <Studio2DTeaserSection />
+        {/* 5. Cara Pemesanan + Cek Jadwal via WA & Rules */}
+        <HowToOrderSection />
+        {/* 6. Portofolio Momen Manis */}
         <PortfolioSection />
       </main>
+      {/* 7. Footer */}
       <Footer />
       <SettingsDrawer open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </div>

@@ -270,13 +270,6 @@ function SeamlessScene({
           onTap={onTap}
           onExplode={onExplode}
         />
-        {/* Subtle floating gold halo behind upper balloons */}
-        <Float speed={1.0} rotationIntensity={0.06} floatIntensity={0.16}>
-          <mesh position={[0, 2.15, -2.0]} rotation={[0.06, -0.12, 0]}>
-            <torusGeometry args={[1.95, 0.022, 12, 60]} />
-            <meshPhysicalMaterial color="#E5C691" metalness={0.82} roughness={0.2} />
-          </mesh>
-        </Float>
       </group>
     )
   }
@@ -363,13 +356,6 @@ function SeamlessScene({
         onTap={onTap}
         onExplode={onExplode}
       />
-
-      <Float speed={1.0} rotationIntensity={0.08} floatIntensity={0.2}>
-        <mesh position={[3.0, 0.15, -2.1]} rotation={[0.08, -0.18, 0]}>
-          <torusGeometry args={[2.6, 0.024, 12, 72]} />
-          <meshPhysicalMaterial color="#E5C691" metalness={0.82} roughness={0.2} />
-        </mesh>
-      </Float>
     </group>
   )
 }

@@ -3,8 +3,8 @@ import { Menu, X, Sparkles, MessageCircle, Settings, ArrowUpRight } from 'lucide
 import { useSiteConfig } from '../context/SiteConfigContext'
 
 const NAV_LINKS = [
-  { label: 'Cara Pesan', href: '#cara-pesan' },
   { label: 'Model', href: '#model-desain' },
+  { label: 'Cara Pesan', href: '#cara-pesan' },
   { label: 'Portofolio', href: '#portofolio' },
 ]
 
