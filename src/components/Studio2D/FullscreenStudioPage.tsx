@@ -28,7 +28,14 @@ import {
   Check,
   AlignHorizontalJustifyCenter,
   Grid3X3,
+  Lock,
+  KeyRound,
+  LogOut,
+  CloudUpload,
+  Loader2,
+  ShieldCheck,
 } from 'lucide-react'
+import { DEFAULT_GITHUB_REPO } from '../../lib/githubSync'
 import {
   CanvasElement,
   ROOM_BACKGROUNDS,
@@ -82,7 +89,24 @@ export default function FullscreenStudioPage({
   initialModelId,
   createPackageMode = false,
 }: FullscreenStudioPageProps) {
-  const { config, updateConfig, buildWhatsAppUrl } = useSiteConfig()
+  const {
+    config,
+    updateConfig,
+    buildWhatsAppUrl,
+    isAdmin,
+    adminUser,
+    adminRepo,
+    loginAdmin,
+    logoutAdmin,
+    publishToGithub,
+    isPublishing,
+  } = useSiteConfig()
+
+  const [tokenInput, setTokenInput] = useState('')
+  const [repoInput, setRepoInput] = useState(adminRepo || DEFAULT_GITHUB_REPO)
+  const [verifyingToken, setVerifyingToken] = useState(false)
+  const [tokenError, setTokenError] = useState<string | null>(null)
+  const [pkgPublishMsg, setPkgPublishMsg] = useState<string | null>(null)
 
   const existingModel = initialModelId
     ? config.models.find((m) => m.id === initialModelId)
@@ -381,7 +405,17 @@ export default function FullscreenStudioPage({
     setPkgModalOpen(true)
   }
 
-  const handleSaveAsHomepagePackage = () => {
+  const handleStudioAdminLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setTokenError(null)
+    setVerifyingToken(true)
+    const res = await loginAdmin(tokenInput, repoInput)
+    setVerifyingToken(false)
+    if (!res.ok) setTokenError(res.error || 'Token GitHub tidak valid.')
+    else setTokenInput('')
+  }
+
+  const handleSaveAsHomepagePackage = async () => {
     const cleanName = pkgName.trim() || `Paket Custom ${config.models.length + 1}`
     const specs = pkgSpecsText
       .split(',')
@@ -405,17 +439,26 @@ export default function FullscreenStudioPage({
       customStudioBgId: backgroundId,
     }
 
-    updateConfig((prev) => {
-      const exists = prev.models.some((m) => m.id === newModel.id)
-      return {
-        ...prev,
-        models: exists
-          ? prev.models.map((m) => (m.id === newModel.id ? newModel : m))
-          : [newModel, ...prev.models],
-      }
-    })
+    const exists = config.models.some((m) => m.id === newModel.id)
+    const nextConfig = {
+      ...config,
+      models: exists
+        ? config.models.map((m) => (m.id === newModel.id ? newModel : m))
+        : [newModel, ...config.models],
+    }
 
+    updateConfig(() => nextConfig)
     setPkgSavedDone(true)
+    setPkgPublishMsg(null)
+
+    if (isAdmin) {
+      const res = await publishToGithub(nextConfig)
+      if (res.ok) {
+        setPkgPublishMsg('Sudah otomatis ter-publish ke GitHub! Live dalam ~1 menit 🚀')
+      } else {
+        setPkgPublishMsg(`Tersimpan lokal (GitHub: ${res.error || 'gagal publish'}).`)
+      }
+    }
     showToast(`Paket "${cleanName}" tampil di Homepage! 🎉`)
   }
 
@@ -1027,7 +1070,7 @@ export default function FullscreenStudioPage({
         )}
 
         <div className="flex items-center gap-1.5">
-          {createPackageMode && (
+          {createPackageMode && isAdmin && (
             <button
               type="button"
               onClick={openSavePackageModal}
@@ -1441,7 +1484,7 @@ export default function FullscreenStudioPage({
         })}
       </nav>
 
-      {/* Studio 2D Content Settings Drawer */}
+      {/* Studio 2D Content Settings Drawer (Admin-Only via GitHub Personal Access Token) */}
       {studioSettingsOpen && (
         <div
           onClick={() => setStudioSettingsOpen(false)}
@@ -1453,9 +1496,18 @@ export default function FullscreenStudioPage({
           >
             <div className="px-5 py-4 border-b border-[#FDEBED] flex items-center justify-between bg-[#FFF9FA]">
               <div>
-                <h2 className="text-sm font-extrabold text-[#162A4C]">Pengaturan Konten Studio 2D</h2>
+                <h2 className="text-sm font-extrabold text-[#162A4C] flex items-center gap-1.5">
+                  {isAdmin ? (
+                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                  ) : (
+                    <Lock className="w-4 h-4 text-[#D98395]" />
+                  )}
+                  Pengaturan Admin Studio 2D
+                </h2>
                 <p className="text-[11px] text-[#162A4C]/55">
-                  Jadikan desain ini Paket Homepage atau atur elemen.
+                  {isAdmin
+                    ? `Admin @${adminUser} (${adminRepo})`
+                    : 'Khusus Admin — login pakai GitHub Personal Access Token.'}
                 </p>
               </div>
               <button
@@ -1467,162 +1519,237 @@ export default function FullscreenStudioPage({
               </button>
             </div>
 
-            <div className="px-4 py-3 border-b border-[#FDEBED] bg-[#FFF5F7]">
-              <button
-                type="button"
-                onClick={openSavePackageModal}
-                className="w-full py-2.5 px-4 rounded-2xl bg-[#162A4C] hover:bg-[#243E6B] text-white text-xs font-extrabold flex items-center justify-center gap-2 shadow-sm cursor-pointer transition-colors"
+            {!isAdmin ? (
+              <form
+                onSubmit={handleStudioAdminLogin}
+                className="flex-1 overflow-y-auto p-6 flex flex-col justify-center space-y-4"
               >
-                <PackagePlus className="w-4 h-4 text-[#F2B3BD]" />
-                + Jadikan Desain Ini Paket Homepage
-              </button>
-            </div>
+                <div className="w-12 h-12 rounded-2xl bg-[#FDEBED] flex items-center justify-center mx-auto">
+                  <KeyRound className="w-6 h-6 text-[#162A4C]" />
+                </div>
+                <div className="text-center space-y-1">
+                  <h3 className="text-base font-extrabold text-[#162A4C]">Verifikasi Admin GitHub</h3>
+                  <p className="text-xs text-[#162A4C]/65">
+                    Masukkan GitHub Personal Access Token dengan akses push ke repo Bubu Balloon.
+                  </p>
+                </div>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-[#162A4C] mb-1">
+                      Repository GitHub
+                    </label>
+                    <input
+                      type="text"
+                      value={repoInput}
+                      onChange={(e) => setRepoInput(e.target.value)}
+                      className="w-full rounded-xl border border-[#EFAAB6]/60 bg-[#FFF9FA] px-3 py-2 text-xs font-bold text-[#162A4C]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-[#162A4C] mb-1">
+                      GitHub Personal Access Token
+                    </label>
+                    <input
+                      type="password"
+                      value={tokenInput}
+                      onChange={(e) => setTokenInput(e.target.value)}
+                      placeholder="ghp_xxxx atau github_pat_xxxx"
+                      autoComplete="off"
+                      className="w-full rounded-xl border border-[#EFAAB6]/60 bg-[#FFF9FA] px-3 py-2 text-xs font-mono text-[#162A4C]"
+                    />
+                  </div>
+                  {tokenError && (
+                    <p className="rounded-xl bg-rose-50 border border-rose-200 px-3 py-2 text-[11px] font-bold text-rose-600">
+                      {tokenError}
+                    </p>
+                  )}
+                  <button
+                    type="submit"
+                    disabled={verifyingToken}
+                    className="w-full py-3 rounded-full bg-[#162A4C] hover:bg-[#243E6B] disabled:opacity-60 text-white text-xs font-extrabold flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    {verifyingToken ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Memverifikasi...
+                      </>
+                    ) : (
+                      <>
+                        <KeyRound className="w-4 h-4 text-[#F2B3BD]" />
+                        Hubungkan &amp; Buka Pengaturan
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <>
+                <div className="px-4 py-3 border-b border-[#FDEBED] bg-[#FFF5F7] flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={openSavePackageModal}
+                    className="flex-1 py-2.5 px-4 rounded-2xl bg-[#162A4C] hover:bg-[#243E6B] text-white text-xs font-extrabold flex items-center justify-center gap-2 shadow-sm cursor-pointer transition-colors"
+                  >
+                    <PackagePlus className="w-4 h-4 text-[#F2B3BD]" />
+                    + Jadikan Paket Homepage
+                  </button>
+                  <button
+                    type="button"
+                    onClick={logoutAdmin}
+                    title="Logout Admin"
+                    className="p-2.5 rounded-2xl bg-white border border-[#F2D5DC] text-rose-500 hover:bg-rose-50 cursor-pointer"
+                  >
+                    <LogOut className="w-4 h-4" />
+                  </button>
+                </div>
 
-            <div className="px-4 py-2 border-b border-[#FDEBED] grid grid-cols-3 gap-1">
-              {[
-                { id: 'elemen' as const, label: 'Elemen' },
-                { id: 'template' as const, label: 'Template' },
-                { id: 'latar' as const, label: 'Latar' },
-              ].map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  onClick={() => setStudioSettingsTab(t.id)}
-                  className={`py-2 rounded-xl text-xs font-bold cursor-pointer ${
-                    studioSettingsTab === t.id
-                      ? 'bg-[#162A4C] text-white'
-                      : 'text-[#162A4C]/65 hover:bg-[#FFF5F7]'
-                  }`}
-                >
-                  {t.label}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-4 space-y-2">
-              {studioSettingsTab === 'elemen' &&
-                STICKER_DEFINITIONS.map((def) => {
-                  const hidden = studioSettings.hiddenTypes.includes(def.type)
-                  return (
-                    <div
-                      key={def.type}
-                      className={`flex items-center gap-2 p-2.5 rounded-xl border ${
-                        hidden ? 'bg-gray-50 border-gray-200 opacity-60' : 'bg-[#FFF9FA] border-[#F2D5DC]'
+                <div className="px-4 py-2 border-b border-[#FDEBED] grid grid-cols-3 gap-1">
+                  {[
+                    { id: 'elemen' as const, label: 'Elemen' },
+                    { id: 'template' as const, label: 'Template' },
+                    { id: 'latar' as const, label: 'Latar' },
+                  ].map((t) => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => setStudioSettingsTab(t.id)}
+                      className={`py-2 rounded-xl text-xs font-bold cursor-pointer ${
+                        studioSettingsTab === t.id
+                          ? 'bg-[#162A4C] text-white'
+                          : 'text-[#162A4C]/65 hover:bg-[#FFF5F7]'
                       }`}
                     >
-                      <input
-                        type="text"
-                        value={getStickerLabel(def)}
-                        onChange={(e) => {
-                          const val = e.target.value
-                          setStudioSettings((prev) => ({
-                            ...prev,
-                            customLabels: { ...prev.customLabels, [def.type]: val },
-                          }))
-                        }}
-                        className="flex-1 rounded-lg border border-[#EFAAB6]/40 bg-white px-2.5 py-1 text-xs font-bold text-[#162A4C]"
-                      />
-                      <span className="text-[10px] font-semibold text-[#162A4C]/50">{def.category}</span>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setStudioSettings((prev) => ({
-                            ...prev,
-                            hiddenTypes: prev.hiddenTypes.includes(def.type)
-                              ? prev.hiddenTypes.filter((x) => x !== def.type)
-                              : [...prev.hiddenTypes, def.type],
-                          }))
-                        }
-                        className={`p-1.5 rounded-lg cursor-pointer ${
-                          hidden ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500'
-                        }`}
-                      >
-                        {hidden ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
-                      </button>
-                    </div>
-                  )
-                })}
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
 
-              {studioSettingsTab === 'template' &&
-                STUDIO_PRESETS.map((p) => {
-                  const hidden = studioSettings.hiddenPresetIds.includes(p.id)
-                  return (
-                    <div
-                      key={p.id}
-                      className="flex items-center justify-between p-3 rounded-xl bg-[#FFF9FA] border border-[#F2D5DC]"
-                    >
-                      <span className={`text-xs font-bold ${hidden ? 'line-through text-gray-400' : 'text-[#162A4C]'}`}>
-                        {p.name}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setStudioSettings((prev) => ({
-                            ...prev,
-                            hiddenPresetIds: prev.hiddenPresetIds.includes(p.id)
-                              ? prev.hiddenPresetIds.filter((x) => x !== p.id)
-                              : [...prev.hiddenPresetIds, p.id],
-                          }))
-                        }
-                        className={`px-2.5 py-1 rounded-lg text-[11px] font-bold cursor-pointer ${
-                          hidden ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
-                        }`}
-                      >
-                        {hidden ? 'Tampilkan' : 'Hapus'}
-                      </button>
-                    </div>
-                  )
-                })}
+                <div className="flex-1 overflow-y-auto p-4 space-y-2">
+                  {studioSettingsTab === 'elemen' &&
+                    STICKER_DEFINITIONS.map((def) => {
+                      const hidden = studioSettings.hiddenTypes.includes(def.type)
+                      return (
+                        <div
+                          key={def.type}
+                          className={`flex items-center gap-2 p-2.5 rounded-xl border ${
+                            hidden ? 'bg-gray-50 border-gray-200 opacity-60' : 'bg-[#FFF9FA] border-[#F2D5DC]'
+                          }`}
+                        >
+                          <input
+                            type="text"
+                            value={getStickerLabel(def)}
+                            onChange={(e) => {
+                              const val = e.target.value
+                              setStudioSettings((prev) => ({
+                                ...prev,
+                                customLabels: { ...prev.customLabels, [def.type]: val },
+                              }))
+                            }}
+                            className="flex-1 rounded-lg border border-[#EFAAB6]/40 bg-white px-2.5 py-1 text-xs font-bold text-[#162A4C]"
+                          />
+                          <span className="text-[10px] font-semibold text-[#162A4C]/50">{def.category}</span>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setStudioSettings((prev) => ({
+                                ...prev,
+                                hiddenTypes: prev.hiddenTypes.includes(def.type)
+                                  ? prev.hiddenTypes.filter((x) => x !== def.type)
+                                  : [...prev.hiddenTypes, def.type],
+                              }))
+                            }
+                            className={`p-1.5 rounded-lg cursor-pointer ${
+                              hidden ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500'
+                            }`}
+                          >
+                            {hidden ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                          </button>
+                        </div>
+                      )
+                    })}
 
-              {studioSettingsTab === 'latar' &&
-                ROOM_BACKGROUNDS.map((b) => {
-                  const hidden = studioSettings.hiddenBgIds.includes(b.id)
-                  return (
-                    <div
-                      key={b.id}
-                      className="flex items-center justify-between p-3 rounded-xl bg-[#FFF9FA] border border-[#F2D5DC]"
-                    >
-                      <span className={`text-xs font-bold ${hidden ? 'line-through text-gray-400' : 'text-[#162A4C]'}`}>
-                        {b.label}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setStudioSettings((prev) => ({
-                            ...prev,
-                            hiddenBgIds: prev.hiddenBgIds.includes(b.id)
-                              ? prev.hiddenBgIds.filter((x) => x !== b.id)
-                              : [...prev.hiddenBgIds, b.id],
-                          }))
-                        }
-                        className={`px-2.5 py-1 rounded-lg text-[11px] font-bold cursor-pointer ${
-                          hidden ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
-                        }`}
-                      >
-                        {hidden ? 'Tampilkan' : 'Hapus'}
-                      </button>
-                    </div>
-                  )
-                })}
-            </div>
+                  {studioSettingsTab === 'template' &&
+                    STUDIO_PRESETS.map((p) => {
+                      const hidden = studioSettings.hiddenPresetIds.includes(p.id)
+                      return (
+                        <div
+                          key={p.id}
+                          className="flex items-center justify-between p-3 rounded-xl bg-[#FFF9FA] border border-[#F2D5DC]"
+                        >
+                          <span className={`text-xs font-bold ${hidden ? 'line-through text-gray-400' : 'text-[#162A4C]'}`}>
+                            {p.name}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setStudioSettings((prev) => ({
+                                ...prev,
+                                hiddenPresetIds: prev.hiddenPresetIds.includes(p.id)
+                                  ? prev.hiddenPresetIds.filter((x) => x !== p.id)
+                                  : [...prev.hiddenPresetIds, p.id],
+                              }))
+                            }
+                            className={`px-2.5 py-1 rounded-lg text-[11px] font-bold cursor-pointer ${
+                              hidden ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
+                            }`}
+                          >
+                            {hidden ? 'Tampilkan' : 'Hapus'}
+                          </button>
+                        </div>
+                      )
+                    })}
 
-            <div className="px-5 py-3.5 border-t border-[#FDEBED] bg-[#FFF9FA] flex items-center justify-between">
-              <button
-                type="button"
-                onClick={() => setStudioSettings(DEFAULT_STUDIO_SETTINGS)}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-rose-500 cursor-pointer"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                Reset Default
-              </button>
-              <button
-                type="button"
-                onClick={() => setStudioSettingsOpen(false)}
-                className="px-5 py-2 rounded-full bg-[#162A4C] text-white text-xs font-bold cursor-pointer"
-              >
-                Selesai
-              </button>
-            </div>
+                  {studioSettingsTab === 'latar' &&
+                    ROOM_BACKGROUNDS.map((b) => {
+                      const hidden = studioSettings.hiddenBgIds.includes(b.id)
+                      return (
+                        <div
+                          key={b.id}
+                          className="flex items-center justify-between p-3 rounded-xl bg-[#FFF9FA] border border-[#F2D5DC]"
+                        >
+                          <span className={`text-xs font-bold ${hidden ? 'line-through text-gray-400' : 'text-[#162A4C]'}`}>
+                            {b.label}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setStudioSettings((prev) => ({
+                                ...prev,
+                                hiddenBgIds: prev.hiddenBgIds.includes(b.id)
+                                  ? prev.hiddenBgIds.filter((x) => x !== b.id)
+                                  : [...prev.hiddenBgIds, b.id],
+                              }))
+                            }
+                            className={`px-2.5 py-1 rounded-lg text-[11px] font-bold cursor-pointer ${
+                              hidden ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
+                            }`}
+                          >
+                            {hidden ? 'Tampilkan' : 'Hapus'}
+                          </button>
+                        </div>
+                      )
+                    })}
+                </div>
+
+                <div className="px-5 py-3.5 border-t border-[#FDEBED] bg-[#FFF9FA] flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={() => setStudioSettings(DEFAULT_STUDIO_SETTINGS)}
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-rose-500 cursor-pointer"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    Reset Default
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setStudioSettingsOpen(false)}
+                    className="px-5 py-2 rounded-full bg-[#162A4C] text-white text-xs font-bold cursor-pointer"
+                  >
+                    Selesai
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -1663,7 +1790,7 @@ export default function FullscreenStudioPage({
                     Berhasil ditambahkan ke Homepage Paket! 🎉
                   </p>
                   <p className="text-xs text-[#162A4C]/60 mt-1">
-                    Buka beranda untuk melihat kartu paket baru kamu langsung tampil.
+                    {pkgPublishMsg || 'Buka beranda untuk melihat kartu paket baru kamu langsung tampil.'}
                   </p>
                 </div>
                 <div className="flex gap-2">
@@ -1766,10 +1893,21 @@ export default function FullscreenStudioPage({
 
                 <button
                   type="button"
+                  disabled={isPublishing}
                   onClick={handleSaveAsHomepagePackage}
-                  className="w-full py-3 rounded-full bg-[#162A4C] hover:bg-[#243E6B] text-white text-xs font-extrabold shadow-lg cursor-pointer transition-colors"
+                  className="w-full py-3 rounded-full bg-[#162A4C] hover:bg-[#243E6B] disabled:opacity-60 text-white text-xs font-extrabold shadow-lg inline-flex items-center justify-center gap-2 cursor-pointer transition-colors"
                 >
-                  Simpan ke Homepage Paket ✨
+                  {isPublishing ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Menyimpan &amp; Publish ke GitHub...
+                    </>
+                  ) : (
+                    <>
+                      <CloudUpload className="w-4 h-4 text-[#F2B3BD]" />
+                      Simpan &amp; Publish ke Homepage ✨
+                    </>
+                  )}
                 </button>
               </div>
             )}

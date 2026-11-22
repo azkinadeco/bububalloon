@@ -1,5 +1,10 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import type { CanvasElement } from '../components/Studio2D/stickerLibrary'
+import {
+  DEFAULT_GITHUB_REPO,
+  verifyGithubAdminToken,
+  publishSiteConfigToGithub,
+} from '../lib/githubSync'
 
 export type DesignCategory = 'Semua' | 'Ulang Tahun' | 'Sweet 17' | 'Kids & Baby' | 'Intimate & Bridal'
 
@@ -10,7 +15,7 @@ export interface DesignModel {
   tag: string
   size: string
   description: string
-  image: string // Empty string = render 2D Studio preview; custom dataURL/URL = show uploaded photo
+  image: string
   colors: string[]
   includes: string[]
   studioPresetId: string
@@ -189,33 +194,84 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
 }
 
 export const SITE_CONFIG_STORAGE_KEY = 'bubu-balloon-site-config-v3'
+const ADMIN_AUTH_STORAGE_KEY = 'bubu-balloon-github-admin-v1'
+
+interface AdminSession {
+  token: string
+  repo: string
+  username: string
+}
 
 interface SiteConfigContextValue {
   config: SiteConfig
   updateConfig: (updater: (prev: SiteConfig) => SiteConfig) => void
   resetConfig: () => void
   buildWhatsAppUrl: (message: string) => string
+  // Admin GitHub Auth & Sync
+  isAdmin: boolean
+  adminUser: string | null
+  adminRepo: string
+  loginAdmin: (token: string, repo?: string) => Promise<{ ok: boolean; error?: string }>
+  logoutAdmin: () => void
+  publishToGithub: (overrideConfig?: SiteConfig) => Promise<{ ok: boolean; commitUrl?: string; error?: string }>
+  isPublishing: boolean
 }
 
 const SiteConfigContext = createContext<SiteConfigContextValue | null>(null)
+
+function mergeConfig(parsed: Partial<SiteConfig>): SiteConfig {
+  return {
+    ...DEFAULT_SITE_CONFIG,
+    ...parsed,
+    brand: { ...DEFAULT_SITE_CONFIG.brand, ...(parsed.brand ?? {}) },
+  }
+}
 
 function loadConfigFromStorage(): SiteConfig {
   try {
     const raw = localStorage.getItem(SITE_CONFIG_STORAGE_KEY)
     if (!raw) return DEFAULT_SITE_CONFIG
-    const parsed = JSON.parse(raw) as Partial<SiteConfig>
-    return {
-      ...DEFAULT_SITE_CONFIG,
-      ...parsed,
-      brand: { ...DEFAULT_SITE_CONFIG.brand, ...(parsed.brand ?? {}) },
-    }
+    return mergeConfig(JSON.parse(raw) as Partial<SiteConfig>)
   } catch {
     return DEFAULT_SITE_CONFIG
   }
 }
 
+function loadAdminSession(): AdminSession | null {
+  try {
+    const raw = localStorage.getItem(ADMIN_AUTH_STORAGE_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as Partial<AdminSession>
+    if (parsed.token && parsed.repo && parsed.username) {
+      return parsed as AdminSession
+    }
+    return null
+  } catch {
+    return null
+  }
+}
+
 export function SiteConfigProvider({ children }: { children: React.ReactNode }) {
   const [config, setConfig] = useState<SiteConfig>(loadConfigFromStorage)
+  const [adminSession, setAdminSession] = useState<AdminSession | null>(loadAdminSession)
+  const [isPublishing, setIsPublishing] = useState(false)
+
+  // Fetch published public/site-config.json on mount for visitors (when no local admin draft overrides)
+  useEffect(() => {
+    const hasLocalOverride = Boolean(localStorage.getItem(SITE_CONFIG_STORAGE_KEY))
+    if (hasLocalOverride && adminSession) return
+
+    fetch(`/site-config.json?v=${Date.now()}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: Partial<SiteConfig> | null) => {
+        if (data && data.brand) {
+          setConfig(mergeConfig(data))
+        }
+      })
+      .catch(() => {
+        // Fallback silently to DEFAULT_SITE_CONFIG
+      })
+  }, [adminSession])
 
   useEffect(() => {
     try {
@@ -225,11 +281,13 @@ export function SiteConfigProvider({ children }: { children: React.ReactNode }) 
     }
   }, [config])
 
-  // Real-time sync across tabs (e.g. saving a new package in Studio 2D tab updates Homepage tab instantly!)
+  // Real-time sync across tabs
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
       if (e.key === SITE_CONFIG_STORAGE_KEY) {
         setConfig(loadConfigFromStorage())
+      } else if (e.key === ADMIN_AUTH_STORAGE_KEY) {
+        setAdminSession(loadAdminSession())
       }
     }
     window.addEventListener('storage', onStorage)
@@ -249,11 +307,68 @@ export function SiteConfigProvider({ children }: { children: React.ReactNode }) 
     }
   }
 
+  const loginAdmin = async (token: string, repo: string = DEFAULT_GITHUB_REPO) => {
+    const res = await verifyGithubAdminToken(token, repo)
+    if (!res.ok) return { ok: false, error: res.error }
+
+    const session: AdminSession = {
+      token: token.trim(),
+      repo: repo.trim().replace(/^https?:\/\/github\.com\//, '').replace(/\.git$/, ''),
+      username: res.username || 'Admin',
+    }
+    setAdminSession(session)
+    try {
+      localStorage.setItem(ADMIN_AUTH_STORAGE_KEY, JSON.stringify(session))
+    } catch {
+      // ignore
+    }
+    return { ok: true }
+  }
+
+  const logoutAdmin = () => {
+    setAdminSession(null)
+    try {
+      localStorage.removeItem(ADMIN_AUTH_STORAGE_KEY)
+    } catch {
+      // ignore
+    }
+  }
+
+  const publishToGithub = async (overrideConfig?: SiteConfig) => {
+    if (!adminSession) {
+      return { ok: false, error: 'Silakan login sebagai Admin GitHub terlebih dahulu.' }
+    }
+    setIsPublishing(true)
+    try {
+      return await publishSiteConfigToGithub(
+        adminSession.token,
+        overrideConfig ?? config,
+        adminSession.repo
+      )
+    } finally {
+      setIsPublishing(false)
+    }
+  }
+
   const buildWhatsAppUrl = (message: string) =>
     `https://wa.me/${config.brand.whatsappNumber}?text=${encodeURIComponent(message)}`
 
   return (
-    <SiteConfigContext.Provider value={{ config, updateConfig, resetConfig, buildWhatsAppUrl }}>
+    <SiteConfigContext.Provider
+      value={{
+        config,
+        updateConfig,
+        resetConfig,
+        buildWhatsAppUrl,
+        isAdmin: Boolean(adminSession),
+        adminUser: adminSession?.username ?? null,
+        adminRepo: adminSession?.repo ?? DEFAULT_GITHUB_REPO,
+        loginAdmin,
+        logoutAdmin,
+        publishToGithub,
+        isPublishing,
+      }}
+    >
       {children}
     </SiteConfigContext.Provider>
   )
