@@ -1,7 +1,8 @@
-import { useState, lazy, Suspense } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowDownRight, Sparkles, ArrowUpRight, Hand } from 'lucide-react'
 import { BALLOON_MOODS, type PopBurstEvent } from './heroMoods'
+import { MobileBlenderBalloons } from './MobileBlenderBalloons'
 import { useSiteConfig } from '../context/SiteConfigContext'
 
 const Hero3DScene = lazy(() => import('./Hero3DScene'))
@@ -11,7 +12,17 @@ export function HeroSection() {
   const [moodIdx, setMoodIdx] = useState(0)
   const [statusMsg, setStatusMsg] = useState<string | null>(null)
   const [bursts, setBursts] = useState<PopBurstEvent[]>([])
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth < 1024 : false
+  )
   const activeMood = BALLOON_MOODS[moodIdx]
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 1023px)')
+    const onChange = () => setIsMobile(mq.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
 
   const handlePopBurst = (ev: PopBurstEvent) => {
     setBursts((prev) => [...prev.slice(-4), ev])
@@ -38,11 +49,15 @@ export function HeroSection() {
       <div className="pointer-events-none absolute -top-24 left-1/4 w-80 sm:w-[32rem] h-80 sm:h-[32rem] rounded-full bg-[#F7D3DA]/35 blur-3xl" />
       <div className="pointer-events-none absolute bottom-10 right-6 w-80 sm:w-[30rem] h-80 sm:h-[30rem] rounded-full bg-[#FDEBED]/80 blur-3xl" />
 
-      {/* Full-bleed Seamless 3D Balloon Canvas */}
+      {/* Full-bleed Seamless 3D Balloon Canvas (Blender-rendered 60fps on Mobile, Live WebGL on PC) */}
       <div className="absolute inset-0 z-0">
-        <Suspense fallback={null}>
-          <Hero3DScene mood={activeMood} onPopBurst={handlePopBurst} />
-        </Suspense>
+        {isMobile ? (
+          <MobileBlenderBalloons mood={activeMood} onPopBurst={handlePopBurst} />
+        ) : (
+          <Suspense fallback={null}>
+            <Hero3DScene mood={activeMood} onPopBurst={handlePopBurst} />
+          </Suspense>
+        )}
       </div>
 
       {/* Cute Lag-Free Floating PAW! / BLOOP! / POP! Comic-Chic Burst Overlay */}

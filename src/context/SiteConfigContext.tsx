@@ -218,6 +218,9 @@ interface SiteConfigContextValue {
   loginAdmin: (token: string, repo?: string) => Promise<{ ok: boolean; error?: string }>
   logoutAdmin: () => void
   publishToGithub: (overrideConfig?: SiteConfig) => Promise<{ ok: boolean; commitUrl?: string; error?: string }>
+  saveModelAndPublish: (
+    newModel: DesignModel
+  ) => Promise<{ ok: boolean; totalModels: number; error?: string }>
   syncFromGithub: () => Promise<boolean>
   isPublishing: boolean
 }
@@ -286,7 +289,7 @@ export function SiteConfigProvider({ children }: { children: React.ReactNode }) 
     setIsSyncingRemote(true)
     try {
       const repo = adminSession?.repo ?? DEFAULT_GITHUB_REPO
-      const data = await fetchLiveSiteConfig(repo)
+      const data = await fetchLiveSiteConfig(repo, undefined, adminSession?.token)
       if (data && data.brand) {
         setConfig(mergeConfig(data))
         markUnsaved(false)
@@ -298,8 +301,8 @@ export function SiteConfigProvider({ children }: { children: React.ReactNode }) 
     }
   }
 
-  // Always fetch latest published config from GitHub Raw on mount (so HP & all visitors
-  // immediately see changes published from PC!), unless THIS browser has unpublished admin edits.
+  // Always fetch latest published config from GitHub API on mount (0-second delay so HP & all
+  // visitors immediately see changes published from PC!), unless THIS browser has unpublished edits.
   useEffect(() => {
     const dirtyOnThisDevice = (() => {
       try {
@@ -311,7 +314,7 @@ export function SiteConfigProvider({ children }: { children: React.ReactNode }) 
     if (dirtyOnThisDevice && adminSession) return
 
     const repo = adminSession?.repo ?? DEFAULT_GITHUB_REPO
-    fetchLiveSiteConfig(repo)
+    fetchLiveSiteConfig(repo, undefined, adminSession?.token)
       .then((data) => {
         if (data && data.brand) {
           setConfig(mergeConfig(data))
@@ -408,6 +411,71 @@ export function SiteConfigProvider({ children }: { children: React.ReactNode }) 
     }
   }
 
+  /**
+   * Bulletproof package save from Studio 2D:
+   * Merges latest models from BOTH localStorage AND live GitHub before upserting newModel,
+   * so creating multiple packages across tabs can NEVER drop previously created packages!
+   */
+  const saveModelAndPublish = async (
+    newModel: DesignModel
+  ): Promise<{ ok: boolean; totalModels: number; error?: string }> => {
+    const latestLocal = loadConfigFromStorage()
+    let baseModels: DesignModel[] = [...latestLocal.models]
+    let baseConfig: SiteConfig = latestLocal
+
+    if (adminSession) {
+      try {
+        const remote = await fetchLiveSiteConfig(adminSession.repo, undefined, adminSession.token)
+        if (remote?.models && Array.isArray(remote.models)) {
+          // Union merge: preserve all local models + any remote models missing locally
+          const seenIds = new Set(baseModels.map((m) => m.id))
+          for (const rm of remote.models) {
+            if (!seenIds.has(rm.id)) {
+              baseModels.push(rm)
+              seenIds.add(rm.id)
+            }
+          }
+          baseConfig = mergeConfig({ ...remote, ...latestLocal, models: baseModels })
+        }
+      } catch {
+        // Proceed with latest local models
+      }
+    }
+
+    const exists = baseModels.some((m) => m.id === newModel.id)
+    const mergedModels = exists
+      ? baseModels.map((m) => (m.id === newModel.id ? newModel : m))
+      : [newModel, ...baseModels]
+
+    const nextConfig: SiteConfig = {
+      ...baseConfig,
+      models: mergedModels,
+    }
+
+    setConfig(nextConfig)
+    try {
+      localStorage.setItem(SITE_CONFIG_STORAGE_KEY, JSON.stringify(nextConfig))
+    } catch {
+      // ignore quota error
+    }
+
+    if (!adminSession) {
+      markUnsaved(true)
+      return {
+        ok: false,
+        totalModels: mergedModels.length,
+        error: 'Login Admin GitHub di ikon Gear dulu agar tersimpan ke HP.',
+      }
+    }
+
+    const res = await publishToGithub(nextConfig)
+    return {
+      ok: res.ok,
+      totalModels: mergedModels.length,
+      error: res.error,
+    }
+  }
+
   const normalizeWhatsAppNumber = (raw: string): string => {
     const digits = (raw || '').replace(/\D/g, '')
     if (!digits) return '6285122997943'
@@ -436,6 +504,7 @@ export function SiteConfigProvider({ children }: { children: React.ReactNode }) 
         loginAdmin,
         logoutAdmin,
         publishToGithub,
+        saveModelAndPublish,
         syncFromGithub,
         isPublishing,
       }}

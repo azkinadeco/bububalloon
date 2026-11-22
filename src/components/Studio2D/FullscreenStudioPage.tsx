@@ -155,14 +155,13 @@ export default function FullscreenStudioPage({
 }: FullscreenStudioPageProps) {
   const {
     config,
-    updateConfig,
     buildWhatsAppUrl,
     isAdmin,
     adminUser,
     adminRepo,
     loginAdmin,
     logoutAdmin,
-    publishToGithub,
+    saveModelAndPublish,
     isPublishing,
   } = useSiteConfig()
 
@@ -504,27 +503,18 @@ export default function FullscreenStudioPage({
       customStudioBgId: backgroundId,
     }
 
-    const exists = config.models.some((m) => m.id === newModel.id)
-    const nextConfig = {
-      ...config,
-      models: exists
-        ? config.models.map((m) => (m.id === newModel.id ? newModel : m))
-        : [newModel, ...config.models],
-    }
-
-    updateConfig(() => nextConfig)
     setPkgSavedDone(true)
-    setPkgPublishMsg(null)
+    setPkgPublishMsg('Menyimpan & menyinkronkan semua paket ke GitHub...')
 
-    if (isAdmin) {
-      const res = await publishToGithub(nextConfig)
-      if (res.ok) {
-        setPkgPublishMsg('Sudah otomatis ter-publish ke GitHub! Live dalam ~1 menit 🚀')
-      } else {
-        setPkgPublishMsg(`Tersimpan lokal (GitHub: ${res.error || 'gagal publish'}).`)
-      }
+    const res = await saveModelAndPublish(newModel)
+    if (res.ok) {
+      setPkgPublishMsg(
+        `✅ Berhasil ter-publish ke GitHub! Semua ${res.totalModels} paket langsung muncul di HP & PC 🚀`
+      )
+    } else {
+      setPkgPublishMsg(`⚠️ Tersimpan di PC saja (${res.error || 'gagal publish ke GitHub'}).`)
     }
-    showToast(`Paket "${cleanName}" tampil di Homepage! 🎉`)
+    showToast(`Paket "${cleanName}" berhasil disimpan! 🎉`)
   }
 
   const updateSelected = (patch: Partial<CanvasElement>, recordHistory = true) => {
