@@ -27,7 +27,25 @@ export type StickerType =
   | 'teddy-bear'
   | 'ribbon-cake'
   | 'floral-bouquet'
+  | 'jumbo-balloon'
+  | 'number-balloon'
   | 'custom-png'
+
+export interface TextFontOption {
+  id: string
+  label: string
+  family: string
+  italic?: boolean
+}
+
+export const TEXT_FONTS: TextFontOption[] = [
+  { id: 'cormorant', label: 'Elegan Serif', family: 'Cormorant Garamond, Georgia, serif', italic: true },
+  { id: 'dancing', label: 'Script Manis', family: 'Dancing Script, cursive' },
+  { id: 'pacifico', label: 'Brush Lucu', family: 'Pacifico, cursive' },
+  { id: 'playfair', label: 'Classic Editorial', family: 'Playfair Display, Georgia, serif' },
+  { id: 'caveat', label: 'Handwritten', family: 'Caveat, cursive' },
+  { id: 'montserrat', label: 'Modern Bold', family: 'Montserrat, sans-serif' },
+]
 
 export interface CanvasElement {
   id: string
@@ -40,6 +58,7 @@ export interface CanvasElement {
   color: string
   secondaryColor?: string
   text?: string
+  fontFamily?: string
   customImageUrl?: string
 }
 
@@ -119,9 +138,11 @@ export const STICKER_DEFINITIONS: StickerDefinition[] = [
   { type: 'cylinder-fluted-80x40', label: 'Silinder Garis 80×40', category: 'Properti', defaultColor: '#FFFDFC', defaultWidth: 12 },
   { type: 'acrylic-cube-table', label: 'Meja Acrylic Kotak', category: 'Properti', defaultColor: '#E8F4FA', defaultWidth: 12.5 },
   { type: 'gold-cross-table', label: 'Meja Emas Silang', category: 'Properti', defaultColor: '#FFFDFC', defaultSecondary: '#D4AF37', defaultWidth: 15.5 },
+  { type: 'jumbo-balloon', label: 'Balon Jumbo', category: 'Properti', defaultColor: '#F2B3BD', defaultWidth: 14 },
+  { type: 'number-balloon', label: 'Balon Angka 0-9', category: 'Properti', defaultColor: '#DFBE8A', defaultWidth: 12, defaultText: '1' },
   { type: 'marquee-number', label: 'Angka Lampu', category: 'Properti', defaultColor: '#FFFDF8', defaultWidth: 15, defaultText: '17' },
-  { type: 'custom-text', label: 'Tulisan Nama', category: 'Properti', defaultColor: '#162A4C', defaultWidth: 24, defaultText: 'Happy Birthday' },
-  { type: 'neon-sign', label: 'Lampu Neon', category: 'Properti', defaultColor: '#FFE28A', defaultWidth: 21, defaultText: 'Oh Baby' },
+  { type: 'custom-text', label: 'Tulisan Backdrop', category: 'Properti', defaultColor: '#162A4C', defaultWidth: 24, defaultText: 'Happy Birthday' },
+  { type: 'neon-sign', label: 'Tulisan LED', category: 'Properti', defaultColor: '#FFD95A', defaultWidth: 22, defaultText: 'Happy Birthday' },
   { type: 'teddy-bear', label: 'Boneka Teddy', category: 'Properti', defaultColor: '#D8AD86', defaultWidth: 10.5 },
   { type: 'ribbon-cake', label: 'Kue Pita', category: 'Properti', defaultColor: '#FDEBED', defaultWidth: 8.5 },
   { type: 'floral-bouquet', label: 'Buket Bunga', category: 'Properti', defaultColor: '#EFAAB6', defaultWidth: 10.5 },
@@ -879,41 +900,182 @@ export function StickerSVG({ element }: { element: CanvasElement }): React.React
       )
     }
 
-    case 'custom-text':
+    case 'custom-text': {
+      const fontMeta = TEXT_FONTS.find((f) => f.id === element.fontFamily) ?? TEXT_FONTS[0]
       return (
-        <svg viewBox="0 0 260 76" className="w-full h-full">
+        <svg viewBox="0 0 280 82" className="w-full h-full">
           <text
-            x="130"
-            y="48"
+            x="140"
+            y="52"
             textAnchor="middle"
             fill={color}
-            fontSize="30"
-            fontFamily="Cormorant Garamond, Georgia, serif"
-            fontStyle="italic"
+            fontSize="31"
+            fontFamily={fontMeta.family}
+            fontStyle={fontMeta.italic ? 'italic' : 'normal'}
             fontWeight="700"
           >
             {text || 'Happy Birthday'}
           </text>
         </svg>
       )
+    }
 
-    case 'neon-sign':
+    case 'neon-sign': {
+      // Genuine glowing Warm Yellow LED Neon Flex (1 fixed warm yellow color!)
+      const ledText = text || 'Happy Birthday'
       return (
-        <svg viewBox="0 0 240 84" className="w-full h-full">
+        <svg viewBox="0 0 280 96" className="w-full h-full overflow-visible">
+          <defs>
+            <filter id={`led-outer-${clipId}`} x="-40%" y="-40%" width="180%" height="180%">
+              <feGaussianBlur stdDeviation="8" result="b1" />
+              <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="b2" />
+              <feMerge>
+                <feMergeNode in="b1" />
+                <feMergeNode in="b2" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+          {/* Wide warm yellow ambient LED halo */}
           <text
-            x="120"
-            y="56"
+            x="140"
+            y="60"
             textAnchor="middle"
-            fill={color}
+            fill="#FFB703"
+            fillOpacity="0.85"
+            stroke="#FFB703"
+            strokeWidth="8"
+            strokeLinejoin="round"
             fontSize="38"
-            fontFamily="Caveat, cursive"
+            fontFamily="Dancing Script, Caveat, cursive"
             fontWeight="700"
-            style={{ filter: `drop-shadow(0 0 8px ${color})` }}
+            filter={`url(#led-outer-${clipId})`}
           >
-            {text || 'Oh Baby'}
+            {ledText}
+          </text>
+          {/* Mid golden LED neon tube */}
+          <text
+            x="140"
+            y="60"
+            textAnchor="middle"
+            fill="#FFE066"
+            stroke="#FFD43B"
+            strokeWidth="3.5"
+            strokeLinejoin="round"
+            fontSize="38"
+            fontFamily="Dancing Script, Caveat, cursive"
+            fontWeight="700"
+          >
+            {ledText}
+          </text>
+          {/* Bright incandescent warm-white core */}
+          <text
+            x="140"
+            y="60"
+            textAnchor="middle"
+            fill="#FFFDF0"
+            fontSize="38"
+            fontFamily="Dancing Script, Caveat, cursive"
+            fontWeight="700"
+          >
+            {ledText}
           </text>
         </svg>
       )
+    }
+
+    case 'jumbo-balloon': {
+      // Realistic giant 24-36" round jumbo balloon with tassel tail
+      const light = shadeHex(color, 26)
+      const dark = shadeHex(color, -18)
+      return (
+        <svg viewBox="0 0 140 220" className="w-full h-full drop-shadow-md">
+          <defs>
+            <radialGradient id={`jumbo-${clipId}`} cx="32%" cy="28%" r="72%">
+              <stop offset="0%" stopColor={light} />
+              <stop offset="52%" stopColor={color} />
+              <stop offset="100%" stopColor={dark} />
+            </radialGradient>
+          </defs>
+          {/* Delicate ribbon string & cute paper tassels */}
+          <path d="M70 128 Q74 166 68 214" fill="none" stroke="#DFBE8A" strokeWidth="2.4" strokeLinecap="round" />
+          <path d="M62 138 L70 128 L78 138 L74 152 L66 152 Z" fill="#FDEBED" stroke="#DFBE8A" strokeWidth="1" />
+          <path d="M64 156 L71 146 L78 156 L75 170 L67 170 Z" fill="#DFBE8A" opacity="0.85" />
+          {/* Giant round jumbo balloon */}
+          <circle cx="70" cy="66" r="58" fill={`url(#jumbo-${clipId})`} stroke="#162A4C" strokeOpacity="0.08" strokeWidth="1.5" />
+          <polygon points="65,123 75,123 70,130" fill={dark} />
+          {/* Glossy studio specular shine */}
+          <ellipse cx="48" cy="44" rx="12" ry="20" fill="#FFFFFF" opacity="0.52" transform="rotate(-24 48 44)" />
+          <circle cx="38" cy="68" r="4.5" fill="#FFFFFF" opacity="0.38" />
+        </svg>
+      )
+    }
+
+    case 'number-balloon': {
+      // Glossy metallic 3D inflated foil number balloon (0-9)
+      const digit = (text || '1').slice(0, 1)
+      const light = shadeHex(color, 34)
+      const dark = shadeHex(color, -24)
+      return (
+        <svg viewBox="0 0 120 150" className="w-full h-full drop-shadow-md">
+          <defs>
+            <linearGradient id={`foil-${clipId}`} x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor={light} />
+              <stop offset="45%" stopColor={color} />
+              <stop offset="78%" stopColor={light} />
+              <stop offset="100%" stopColor={dark} />
+            </linearGradient>
+          </defs>
+          {/* Inflated outer foil seam */}
+          <text
+            x="60"
+            y="120"
+            textAnchor="middle"
+            fill={dark}
+            stroke={dark}
+            strokeWidth="12"
+            strokeLinejoin="round"
+            fontSize="116"
+            fontWeight="900"
+            fontFamily="Montserrat, Plus Jakarta Sans, sans-serif"
+          >
+            {digit}
+          </text>
+          {/* Glossy metallic foil body */}
+          <text
+            x="60"
+            y="120"
+            textAnchor="middle"
+            fill={`url(#foil-${clipId})`}
+            stroke={light}
+            strokeWidth="3"
+            strokeLinejoin="round"
+            fontSize="116"
+            fontWeight="900"
+            fontFamily="Montserrat, Plus Jakarta Sans, sans-serif"
+          >
+            {digit}
+          </text>
+          {/* Specular foil glint highlight */}
+          <text
+            x="57"
+            y="116"
+            textAnchor="middle"
+            fill="none"
+            stroke="#FFFFFF"
+            strokeOpacity="0.48"
+            strokeWidth="2.2"
+            strokeDasharray="16 28"
+            strokeLinecap="round"
+            fontSize="116"
+            fontWeight="900"
+            fontFamily="Montserrat, Plus Jakarta Sans, sans-serif"
+          >
+            {digit}
+          </text>
+        </svg>
+      )
+    }
 
     case 'teddy-bear':
       return (

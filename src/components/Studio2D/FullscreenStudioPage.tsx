@@ -43,6 +43,7 @@ import {
   STICKER_DEFINITIONS,
   STUDIO_PALETTE,
   STUDIO_PRESETS,
+  TEXT_FONTS,
   StickerCategory,
   StickerDefinition,
   StickerSVG,
@@ -510,6 +511,21 @@ export default function FullscreenStudioPage({
     showToast(`Template "${preset.name}" dimuat!`)
   }
 
+  const loadHomepageModelAsTemplate = (model: DesignModel) => {
+    if (model.customStudioElements && model.customStudioElements.length > 0) {
+      setBackgroundId(model.customStudioBgId || 'blush')
+      setCustomBgUrl(null)
+      commitElements(
+        model.customStudioElements.map((e) => ({ ...e, id: `${e.id}-${Date.now()}` }))
+      )
+      setSelectedId(null)
+      setMobileSheet(null)
+      showToast(`Template Paket "${model.name}" dimuat! ✨`)
+      return
+    }
+    loadPreset(model.studioPresetId)
+  }
+
   const handleRoomPhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -840,10 +856,37 @@ export default function FullscreenStudioPage({
 
     if (tab === 'template') {
       return (
-        <div className="space-y-3">
+        <div className="space-y-3.5">
+          {/* Latest Homepage Packages as Live 2D Templates */}
+          <div className="space-y-2">
+            <span className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider text-[#D98395]">
+              <Sparkles className="w-3 h-3" /> Template Paket Homepage
+            </span>
+            {config.models.map((model) => (
+              <button
+                key={model.id}
+                type="button"
+                onClick={() => loadHomepageModelAsTemplate(model)}
+                className="w-full text-left px-3.5 py-2.5 rounded-2xl bg-white border border-[#EFAAB6]/75 hover:border-[#162A4C] transition-colors cursor-pointer"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-extrabold text-[#162A4C] truncate">
+                    {model.name}
+                  </span>
+                  <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-[#FDEBED] text-[#162A4C] shrink-0">
+                    {model.size}
+                  </span>
+                </div>
+                <span className="block text-[10px] text-[#162A4C]/55 mt-0.5 truncate">
+                  {model.category} • {model.includes.slice(0, 2).join(', ')}
+                </span>
+              </button>
+            ))}
+          </div>
+
           {savedDrafts.length > 0 && (
-            <div className="space-y-1.5">
-              <span className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider text-[#D98395]">
+            <div className="space-y-1.5 pt-2 border-t border-[#FDEBED]">
+              <span className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider text-[#162A4C]/60">
                 <FolderOpen className="w-3 h-3" /> Desain Tersimpanmu
               </span>
               {savedDrafts.map((d) => (
@@ -880,21 +923,23 @@ export default function FullscreenStudioPage({
             </div>
           )}
 
-          <div className="space-y-2">
-            {visiblePresets.map((preset) => (
-              <button
-                key={preset.id}
-                type="button"
-                onClick={() => loadPreset(preset.id)}
-                className="w-full text-left px-3.5 py-2.5 rounded-2xl bg-white border border-[#F2D5DC]/70 hover:border-[#162A4C] cursor-pointer"
-              >
-                <span className="block text-xs font-extrabold text-[#162A4C]">{preset.name}</span>
-                <span className="block text-[10px] text-[#162A4C]/55">
-                  {preset.elements.length} elemen siap edit
-                </span>
-              </button>
-            ))}
-          </div>
+          {visiblePresets.length > 0 && (
+            <div className="space-y-1.5 pt-2 border-t border-[#FDEBED]">
+              <span className="block text-[10px] font-extrabold uppercase tracking-wider text-[#162A4C]/45">
+                Preset Bawaan
+              </span>
+              {visiblePresets.map((preset) => (
+                <button
+                  key={preset.id}
+                  type="button"
+                  onClick={() => loadPreset(preset.id)}
+                  className="w-full text-left px-3 py-2 rounded-xl bg-white/80 border border-[#F2D5DC]/60 hover:border-[#162A4C] cursor-pointer"
+                >
+                  <span className="block text-xs font-bold text-[#162A4C]">{preset.name}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )
     }
@@ -1264,11 +1309,15 @@ export default function FullscreenStudioPage({
             </div>
           </div>
 
-          {/* CANVA-STYLE CONTEXTUAL EDIT BAR — Tidy 2-Row Proportional Layout (Zero Clipped Color Rings!) */}
-          <div className="w-full max-w-5xl mt-2.5 shrink-0">
+          {/* CANVA-STYLE CONTEXTUAL EDIT BAR — Rock-solid Event Isolation (Fixes Disappearing/Stuck Text Edit!) */}
+          <div
+            onClick={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
+            className="w-full max-w-5xl mt-2.5 shrink-0 relative z-30"
+          >
             {selectedEl ? (
               <div className="glass-card rounded-2xl px-3.5 py-2.5 space-y-2">
-                {/* Row 1: Actions + Banner/Text + Quick Size */}
+                {/* Row 1: Actions + Banner / Text / Font / Digit Picker + Quick Size */}
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-1">
                     <button
@@ -1344,17 +1393,41 @@ export default function FullscreenStudioPage({
                       </div>
                     )}
 
+                    {/* Smooth Non-Blocking Text Input (commits cleanly on blur!) */}
                     {(selectedEl.type === 'custom-text' ||
                       selectedEl.type === 'marquee-number' ||
                       selectedEl.type === 'neon-sign') && (
                       <input
                         type="text"
-                        maxLength={selectedEl.type === 'marquee-number' ? 3 : 24}
+                        maxLength={selectedEl.type === 'marquee-number' ? 3 : 28}
                         value={selectedEl.text ?? ''}
-                        onChange={(e) => updateSelected({ text: e.target.value })}
+                        onChange={(e) => updateSelected({ text: e.target.value }, false)}
+                        onBlur={() => commitElements(elements)}
                         placeholder="Ketik teks..."
-                        className="w-36 sm:w-44 rounded-full border border-[#EFAAB6] bg-[#FFF9FA] px-3 py-1 text-xs font-bold text-[#162A4C]"
+                        className="w-36 sm:w-44 rounded-full border border-[#EFAAB6] bg-[#FFF9FA] px-3 py-1 text-xs font-bold text-[#162A4C] focus:outline-none focus:ring-2 focus:ring-[#EFAAB6]"
                       />
+                    )}
+
+                    {/* Font Picker for Backdrop Text */}
+                    {selectedEl.type === 'custom-text' && (
+                      <select
+                        value={selectedEl.fontFamily || TEXT_FONTS[0].id}
+                        onChange={(e) => updateSelected({ fontFamily: e.target.value })}
+                        className="rounded-full border border-[#EFAAB6] bg-[#FFF9FA] px-3 py-1 text-xs font-bold text-[#162A4C] cursor-pointer"
+                      >
+                        {TEXT_FONTS.map((f) => (
+                          <option key={f.id} value={f.id}>
+                            Font: {f.label}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+
+                    {/* LED Warm Yellow Fixed Badge */}
+                    {selectedEl.type === 'neon-sign' && (
+                      <span className="px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200 text-[10px] font-extrabold text-amber-700">
+                        ✨ LED Warm Kuning
+                      </span>
                     )}
 
                     {/* Quick Precision Size Control */}
@@ -1380,8 +1453,34 @@ export default function FullscreenStudioPage({
                   </div>
                 </div>
 
-                {/* Row 2: Dedicated Unclipped Color Swatch Bar (generous padding so active ring NEVER clips!) */}
-                {selectedEl.type !== 'custom-png' && (
+                {/* 0-9 Digit Quick Picker for Balon Angka */}
+                {selectedEl.type === 'number-balloon' && (
+                  <div className="pt-1.5 border-t border-[#FDEBED] flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
+                    <span className="text-[10px] font-extrabold text-[#162A4C]/60 shrink-0 mr-1">
+                      Angka:
+                    </span>
+                    {['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].map((digit) => {
+                      const active = (selectedEl.text || '1') === digit
+                      return (
+                        <button
+                          key={digit}
+                          type="button"
+                          onClick={() => updateSelected({ text: digit })}
+                          className={`w-7 h-7 rounded-full text-xs font-extrabold shrink-0 cursor-pointer transition-all ${
+                            active
+                              ? 'bg-[#162A4C] text-white shadow-xs scale-105'
+                              : 'bg-[#FFF5F7] text-[#162A4C] hover:bg-[#FDEBED]'
+                          }`}
+                        >
+                          {digit}
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+
+                {/* Row 2: Unclipped Color Swatch Bar + Custom Spectrum Color Picker (hidden for LED & PNG!) */}
+                {selectedEl.type !== 'custom-png' && selectedEl.type !== 'neon-sign' && (
                   <div className="pt-1.5 border-t border-[#FDEBED] flex items-center gap-2.5">
                     {hasSecondaryColor(selectedEl.type) && (
                       <div className="flex rounded-full bg-[#FFF5F7] p-0.5 border border-[#F2D5DC]/70 shrink-0">
@@ -1406,10 +1505,32 @@ export default function FullscreenStudioPage({
                       </div>
                     )}
                     <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1.5 px-1.5">
+                      {/* Custom Full-Spectrum Color Picker */}
+                      <label
+                        title="Pilih Warna Sendiri (Custom)"
+                        className="relative w-6 h-6 rounded-full shrink-0 cursor-pointer ring-1 ring-black/20 hover:scale-105 transition-transform flex items-center justify-center overflow-hidden"
+                        style={{
+                          background:
+                            'conic-gradient(#ff6b6b, #ffd93d, #6bcb77, #4d96ff, #9d65c9, #ff6b6b)',
+                        }}
+                      >
+                        <span className="w-2 h-2 rounded-full bg-white shadow-xs" />
+                        <input
+                          type="color"
+                          value={
+                            colorSlot === 'secondary'
+                              ? selectedEl.secondaryColor || selectedEl.color
+                              : selectedEl.color
+                          }
+                          onChange={(e) => handleApplyColor(e.target.value)}
+                          className="absolute inset-0 opacity-0 cursor-pointer"
+                        />
+                      </label>
+
                       {STUDIO_PALETTE.map((swatch) => {
                         const activeHex =
                           colorSlot === 'secondary' ? selectedEl.secondaryColor : selectedEl.color
-                        const isPicked = activeHex === swatch.hex
+                        const isPicked = activeHex?.toLowerCase() === swatch.hex.toLowerCase()
                         return (
                           <button
                             key={swatch.hex}
